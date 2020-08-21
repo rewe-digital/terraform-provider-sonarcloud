@@ -1,0 +1,11 @@
+# Go Defaults
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Binary
+terraform-provider-sonarcloud
