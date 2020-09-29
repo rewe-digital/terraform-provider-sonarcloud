@@ -39,4 +39,7 @@ test:
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
+fmt:
+	go fmt ./sonarcloud ./gen
+
 .PHONY: gen

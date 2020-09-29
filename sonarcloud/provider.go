@@ -15,12 +15,12 @@ func Provider() *schema.Provider {
 			"organization": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ORGANIZATION", nil),
+				DefaultFunc: schema.EnvDefaultFunc("SONARCLOUD_ORGANIZATION", nil),
 			},
 			"token": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("TOKEN", nil),
+				DefaultFunc: schema.EnvDefaultFunc("SONARCLOUD_TOKEN", nil),
 				Sensitive:   true,
 			},
 		},
@@ -33,12 +33,12 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	organization := d.Get("organization").(string)
+	org := d.Get("organization").(string)
 	token := d.Get("token").(string)
 
-	c := &Config{
-		Organization: organization,
-		Token:        token,
+	c, err := NewSonarClient(org, token)
+	if err != nil {
+		return nil, diag.FromErr(err)
 	}
 
 	var diags diag.Diagnostics

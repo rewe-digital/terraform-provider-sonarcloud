@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/iancoleman/strcase"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -68,23 +67,15 @@ func dataSourceUserGroups() *schema.Resource {
 }
 
 func dataSourceGroupsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	client := &http.Client{Timeout: 10 * time.Second}
-
 	var diags diag.Diagnostics
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/user_groups/search", API), nil)
+	sc := m.(*SonarClient)
+	req, err := sc.NewRequest()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	c := m.(*Config)
-	q := req.URL.Query()
-	q.Add("organization", c.Organization)
-	req.URL.RawQuery = q.Encode()
-
-	req.SetBasicAuth(c.Token, "")
-
-	resp, err := client.Do(req)
+	resp, err := sc.Do(req)
 	if err != nil {
 		return diag.FromErr(err)
 	}
