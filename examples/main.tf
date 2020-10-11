@@ -14,6 +14,11 @@ provider "sonarcloud" {
 
 data "sonarcloud_user_groups" "groups" {}
 
+resource "sonarcloud_user_group" "test_group" {
+  name        = "example_group"
+  description = "Example group"
+}
+
 output "groups" {
   value = { for k, group in data.sonarcloud_user_groups.groups.groups : lower(group.name) => group }
 }

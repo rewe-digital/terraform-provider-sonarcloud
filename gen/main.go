@@ -162,7 +162,7 @@ func services(service Service, output string) {
 		statements := make([]Code, 0)
 		for _, param := range action.Params {
 			id := strcase.ToCamel(param.Key)
-			statement := Id(id).String().Tag(map[string]string{"json": param.Key}).Comment(param.Description)
+			statement := Id(id).String().Tag(map[string]string{"form": param.Key + ",omitempty"}).Comment(param.Description)
 			statements = append(statements, statement)
 		}
 

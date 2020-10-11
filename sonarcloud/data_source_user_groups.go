@@ -16,18 +16,16 @@ type UserGroupsSearchResponse struct {
 	Groups []UserGroup `json:"groups"`
 }
 
+type UserGroupCreateResponse struct {
+	UserGroup `json:"group"`
+}
+
 type UserGroup struct {
 	Id           int    `json:"id"`
 	Name         string `json:"name"`
 	Description  string `json:"description"`
 	MembersCount int    `json:"membersCount"`
 	Default      bool   `json:"default"`
-}
-
-type ErrorResponse struct {
-	Errors []struct {
-		Message string `json:"msg"`
-	}
 }
 
 func dataSourceUserGroups() *schema.Resource {
@@ -70,7 +68,7 @@ func dataSourceGroupsRead(ctx context.Context, d *schema.ResourceData, m interfa
 	var diags diag.Diagnostics
 
 	sc := m.(*SonarClient)
-	req, err := sc.NewRequest()
+	req, err := sc.NewRequest("GET", fmt.Sprintf("%s/user_groups/search", API), nil)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -82,17 +80,7 @@ func dataSourceGroupsRead(ctx context.Context, d *schema.ResourceData, m interfa
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		errResponse := &ErrorResponse{}
-		err = json.NewDecoder(resp.Body).Decode(&errResponse)
-		if err != nil {
-			return diag.Errorf("API returned a code %d but the error response could not be parsed: %+v", resp.StatusCode, err)
-		}
-
-		for _, e := range errResponse.Errors {
-			diags = appendDiagErrorFromStr(diags, fmt.Sprintf("API (%d): %s", resp.StatusCode, e.Message))
-		}
-
-		return diags
+		return diagErrorResponse(resp, diags)
 	}
 
 	groups := &UserGroupsSearchResponse{}
@@ -101,7 +89,6 @@ func dataSourceGroupsRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.Errorf("Decode error: %+v", err)
 	}
 
-	//g := groupsAsMap(&groups.Groups)
 	g := asLowerCaseMap(&groups.Groups)
 	if err := d.Set("groups", g); err != nil {
 		return diag.Errorf("Error setting state: %+v", err)

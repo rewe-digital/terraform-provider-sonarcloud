@@ -1,7 +1,7 @@
 package sonarcloud
 
 import (
-	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -22,8 +22,8 @@ func NewSonarClient(org string, token string) (*SonarClient, error) {
 	}, nil
 }
 
-func (sc *SonarClient) NewRequest() (*http.Request, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/user_groups/search", API), nil)
+func (sc *SonarClient) NewRequest(method string, url string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
 	}
@@ -32,6 +32,8 @@ func (sc *SonarClient) NewRequest() (*http.Request, error) {
 	req.URL.RawQuery = q.Encode()
 
 	req.SetBasicAuth(sc.token, "")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
 
 	return req, nil
 }
