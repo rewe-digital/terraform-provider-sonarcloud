@@ -7,7 +7,7 @@ import (
 )
 
 func TestAccDataSourceUserGroups(t *testing.T) {
-	numberOfDefaultGroups := "2"
+	numberOfDefaultGroups := "3"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
