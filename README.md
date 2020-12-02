@@ -10,7 +10,7 @@ Run `make install` to build the terraform provider and store it in `~/.terraform
 
 Run `make test` to run all unit tests. This should work without further config and not touch any infrastructure.
 
-Run 'make testacc' to run all acceptance tests. This relies on quite a specific test-organization being available in SonarCloud.
+Run `make testacc` to run all acceptance tests. This relies on quite a specific test-organization being available in SonarCloud.
 The project should have: 
 
 - 3 groups:
