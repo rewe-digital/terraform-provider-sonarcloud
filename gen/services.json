@@ -830,7 +830,6 @@
                 "close",
                 "setinreview",
                 "resolveasreviewed",
-                "openasvulnerability",
                 "resetastoreview"
               ]
             },
@@ -959,24 +958,7 @@
           "internal": false,
           "post": true,
           "hasResponseExample": true,
-          "changelog": [
-            {
-              "description": "added 'setinreview', resolveasreviewed, openasvulnerability and resetastoreview transitions for security hotspots ",
-              "version": "7.8"
-            },
-            {
-              "description": "added transitions for security hotspots",
-              "version": "7.3"
-            },
-            {
-              "description": "the database ids of the components are removed from the response",
-              "version": "6.5"
-            },
-            {
-              "description": "the response field components.uuid is deprecated. Use components.key instead.",
-              "version": "6.5"
-            }
-          ],
+          "changelog": [],
           "params": [
             {
               "key": "issue",
@@ -1000,7 +982,6 @@
                 "close",
                 "setinreview",
                 "resolveasreviewed",
-                "openasvulnerability",
                 "resetastoreview"
               ]
             }
@@ -1055,68 +1036,7 @@
           "internal": false,
           "post": false,
           "hasResponseExample": true,
-          "changelog": [
-            {
-              "description": "added new Security Hotspots statuses : TO_REVIEW, IN_REVIEW and REVIEWED",
-              "version": "7.8"
-            },
-            {
-              "description": "Security hotspots are returned by default",
-              "version": "7.8"
-            },
-            {
-              "description": "Value 'authors' in parameter 'facets' is deprecated, please use 'author' instead",
-              "version": "7.7"
-            },
-            {
-              "description": "The use of module keys in parameter 'componentKeys' is deprecated",
-              "version": "7.6"
-            },
-            {
-              "description": "The facet 'projectUuids' is dropped in favour of the new facet 'projects'. Note that they are not strictly identical, the latter returns the project keys.",
-              "version": "7.4"
-            },
-            {
-              "description": "Parameter 'facetMode' does not accept anymore deprecated value 'debt'",
-              "version": "7.4"
-            },
-            {
-              "description": "response field 'fromHotspot' added to issues that are security hotspots",
-              "version": "7.3"
-            },
-            {
-              "description": "added facets 'sansTop25', 'owaspTop10' and 'cwe'",
-              "version": "7.3"
-            },
-            {
-              "description": "response field 'externalRuleEngine' added to issues that have been imported from an external rule engine",
-              "version": "7.2"
-            },
-            {
-              "description": "value 'ASSIGNEE' in parameter 's' is deprecated, it won't have any effect",
-              "version": "7.2"
-            },
-            {
-              "description": "parameters 'projects', 'projectUuids', 'moduleUuids', 'directories', 'fileUuids' are marked as internal",
-              "version": "6.5"
-            },
-            {
-              "description": "response field 'email' is renamed 'avatar'",
-              "version": "6.3"
-            },
-            {
-              "description": "response fields 'reporter' and 'actionPlan' are removed (drop of action plan and manual issue features)",
-              "version": "5.5"
-            },
-            {
-              "description": "parameters 'reporters', 'actionPlans' and 'planned' are dropped and therefore ignored (drop of action plan and manual issue features)",
-              "version": "5.5"
-            },
-            {
-              "description": "response field 'debt' is renamed 'effort'",
-              "version": "5.5"
-            }
-          ],
+          "changelog": [],
           "params": [
             {
               "key": "additionalFields",
@@ -1398,7 +1318,8 @@
                 "ASSIGNEE",
                 "SEVERITY",
                 "STATUS",
-                "FILE_LINE"
+                "FILE_LINE",
+                "HOTSPOTS"
               ]
             },
             {
@@ -1478,10 +1399,7 @@
                 "CONFIRMED",
                 "REOPENED",
                 "RESOLVED",
-                "CLOSED",
-                "TO_REVIEW",
-                "IN_REVIEW",
-                "REVIEWED"
+                "CLOSED"
               ]
             },
             {
@@ -1500,8 +1418,7 @@
               "possibleValues": [
                 "CODE_SMELL",
                 "BUG",
-                "VULNERABILITY",
-                "SECURITY_HOTSPOT"
+                "VULNERABILITY"
               ]
             }
           ]
@@ -1616,8 +1533,7 @@
               "possibleValues": [
                 "CODE_SMELL",
                 "BUG",
-                "VULNERABILITY",
-                "SECURITY_HOTSPOT"
+                "VULNERABILITY"
               ]
             }
           ]
@@ -4165,14 +4081,14 @@
             },
             {
               "key": "metric",
-              "description": "Condition metric.<br/> Only metric of the following types are allowed:<ul><li>INT</li><li>MILLISEC</li><li>RATING</li><li>WORK_DUR</li><li>FLOAT</li><li>PERCENT</li><li>LEVEL</li>",
+              "description": "Condition metric.<br/> Only metric of the following types are allowed:<ul><li>INT</li><li>MILLISEC</li><li>RATING</li><li>WORK_DUR</li><li>FLOAT</li><li>PERCENT</li><li>LEVEL</li></ul>Following metrics are forbidden:<ul><li>alert_status</li><li>security_hotspots</li><li>new_security_hotspots</li></ul>",
               "required": true,
               "internal": false,
-              "exampleValue": "blocker_violations"
+              "exampleValue": "blocker_violations, vulnerabilities, new_code_smells"
             },
             {
               "key": "op",
-              "description": "Condition operator:<br/><ul><li>LT = is lower than</li><li>GT = is greater than</li></ui>",
+              "description": "Condition operator:<br/><ul><li>LT = is lower than</li><li>GT = is greater than</li></ul>",
               "required": false,
               "internal": false,
               "exampleValue": "GT",
@@ -4665,14 +4581,14 @@
             },
             {
               "key": "metric",
-              "description": "Condition metric.<br/> Only metric of the following types are allowed:<ul><li>INT</li><li>MILLISEC</li><li>RATING</li><li>WORK_DUR</li><li>FLOAT</li><li>PERCENT</li><li>LEVEL</li>",
+              "description": "Condition metric.<br/> Only metric of the following types are allowed:<ul><li>INT</li><li>MILLISEC</li><li>RATING</li><li>WORK_DUR</li><li>FLOAT</li><li>PERCENT</li><li>LEVEL</li></ul>Following metrics are forbidden:<ul><li>alert_status</li><li>security_hotspots</li><li>new_security_hotspots</li></ul>",
               "required": true,
               "internal": false,
-              "exampleValue": "blocker_violations"
+              "exampleValue": "blocker_violations, vulnerabilities, new_code_smells"
             },
             {
               "key": "op",
-              "description": "Condition operator:<br/><ul><li>LT = is lower than</li><li>GT = is greater than</li></ui>",
+              "description": "Condition operator:<br/><ul><li>LT = is lower than</li><li>GT = is greater than</li></ul>",
               "required": false,
               "internal": false,
               "exampleValue": "GT",
@@ -5068,14 +4984,14 @@
                 "apex",
                 "java",
                 "web",
-                "xml",
                 "flex",
+                "xml",
                 "vbnet",
                 "swift",
                 "cpp",
                 "c",
-                "go",
                 "kotlin",
+                "go",
                 "tsql",
                 "ruby",
                 "cs",
@@ -5154,14 +5070,14 @@
                 "apex",
                 "java",
                 "web",
-                "xml",
                 "flex",
+                "xml",
                 "vbnet",
                 "swift",
                 "cpp",
                 "c",
-                "go",
                 "kotlin",
+                "go",
                 "tsql",
                 "ruby",
                 "cs",
@@ -5223,14 +5139,14 @@
                 "apex",
                 "java",
                 "web",
-                "xml",
                 "flex",
+                "xml",
                 "vbnet",
                 "swift",
                 "cpp",
                 "c",
-                "go",
                 "kotlin",
+                "go",
                 "tsql",
                 "ruby",
                 "cs",
@@ -5307,14 +5223,14 @@
                 "apex",
                 "java",
                 "web",
-                "xml",
                 "flex",
+                "xml",
                 "vbnet",
                 "swift",
                 "cpp",
                 "c",
-                "go",
                 "kotlin",
+                "go",
                 "tsql",
                 "ruby",
                 "cs",
@@ -5406,18 +5322,6 @@
           "hasResponseExample": true,
           "changelog": [],
           "params": [
-            {
-              "key": "backup_sonarlint-vs-cs-fake",
-              "description": "A configuration file for Technical importer for the MSBuild SonarQube Scanner.",
-              "required": false,
-              "internal": false
-            },
-            {
-              "key": "backup_sonarlint-vs-vbnet-fake",
-              "description": "A configuration file for Technical importer for the MSBuild SonarQube Scanner.",
-              "required": false,
-              "internal": false
-            },
             {
               "key": "language",
               "description": "Quality profile language",
@@ -5796,14 +5700,14 @@
                 "apex",
                 "java",
                 "web",
-                "xml",
                 "flex",
+                "xml",
                 "vbnet",
                 "swift",
                 "cpp",
                 "c",
-                "go",
                 "kotlin",
+                "go",
                 "tsql",
                 "ruby",
                 "cs",
@@ -5963,14 +5867,14 @@
                 "apex",
                 "java",
                 "web",
-                "xml",
                 "flex",
+                "xml",
                 "vbnet",
                 "swift",
                 "cpp",
                 "c",
-                "go",
                 "kotlin",
+                "go",
                 "tsql",
                 "ruby",
                 "cs",
@@ -6106,14 +6010,14 @@
                 "apex",
                 "java",
                 "web",
-                "xml",
                 "flex",
+                "xml",
                 "vbnet",
                 "swift",
                 "cpp",
                 "c",
-                "go",
                 "kotlin",
+                "go",
                 "tsql",
                 "ruby",
                 "cs",
@@ -6343,14 +6247,14 @@
                 "apex",
                 "java",
                 "web",
-                "xml",
                 "flex",
+                "xml",
                 "vbnet",
                 "swift",
                 "cpp",
                 "c",
-                "go",
                 "kotlin",
+                "go",
                 "tsql",
                 "ruby",
                 "cs",
@@ -6966,25 +6870,11 @@
           ],
           "params": [
             {
-              "key": "branch",
-              "description": "Branch key. Only available on following settings : sonar.leak.period",
-              "required": false,
-              "internal": false,
-              "exampleValue": "feature/my_branch"
-            },
-            {
               "key": "component",
               "description": "Component key",
               "required": false,
               "internal": false,
               "exampleValue": "my_project"
-            },
-            {
-              "key": "pullRequest",
-              "description": "Pull request. Only available on following settings : sonar.leak.period",
-              "required": false,
-              "internal": false,
-              "exampleValue": "5461"
             }
           ]
         },
@@ -7055,13 +6945,6 @@
           ],
           "params": [
             {
-              "key": "branch",
-              "description": "Branch key. Only available on following settings : sonar.leak.period",
-              "required": false,
-              "internal": false,
-              "exampleValue": "feature/my_branch"
-            },
-            {
               "key": "component",
               "description": "Component key",
               "required": false,
@@ -7083,13 +6966,6 @@
               "required": true,
               "internal": false,
               "exampleValue": "sonar.links.scm"
-            },
-            {
-              "key": "pullRequest",
-              "description": "Pull request. Only available on following settings : sonar.leak.period",
-              "required": false,
-              "internal": false,
-              "exampleValue": "5461"
             },
             {
               "key": "value",
@@ -7126,13 +7002,6 @@
           ],
           "params": [
             {
-              "key": "branch",
-              "description": "Branch key. Only available on following settings : sonar.leak.period",
-              "required": false,
-              "internal": false,
-              "exampleValue": "feature/my_branch"
-            },
-            {
               "key": "component",
               "description": "Component key",
               "required": false,
@@ -7145,13 +7014,6 @@
               "required": false,
               "internal": false,
               "exampleValue": "sonar.test.inclusions,sonar.exclusions"
-            },
-            {
-              "key": "pullRequest",
-              "description": "Pull request. Only available on following settings : sonar.leak.period",
-              "required": false,
-              "internal": false,
-              "exampleValue": "5461"
             }
           ]
         }

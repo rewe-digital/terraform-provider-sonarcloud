@@ -131,11 +131,13 @@ type PermissionsRemoveUserFromTemplate struct {
 }
 
 // PermissionsSearchGlobalPermissions: List global permissions. <br />Requires the following permission: 'Administer System'
+// Deprecated: this action has been deprecated since version 6.5
 type PermissionsSearchGlobalPermissions struct {
 	Organization string `form:"organization,omitempty"` // Key of organization, used when group name is set
 }
 
 // PermissionsSearchProjectPermissions: List project permissions. A project can be a technical project, a view or a developer.<br />Requires the permission 'Administer' on the specified project.
+// Deprecated: this action has been deprecated since version 6.5
 type PermissionsSearchProjectPermissions struct {
 	P          string `form:"p,omitempty"`          // 1-based page number
 	ProjectId  string `form:"projectId,omitempty"`  // Project id

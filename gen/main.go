@@ -78,6 +78,7 @@ type Action struct {
 	Post               bool    `json:"post"`
 	HasResponseExample bool    `json:"hasResponseExample"`
 	Params             []Param `json:"params"`
+	DeprecatedSince    string  `json:"deprecatedSince"`
 }
 
 type Param struct {
@@ -168,6 +169,11 @@ func services(service Service, output string) {
 
 		id := strcase.ToCamel(fmt.Sprintf("%s_%s", endpoint, action.Key))
 		f.Commentf("%s: %s", id, action.Description)
+
+		if action.DeprecatedSince != "" {
+			f.Commentf("Deprecated: this action has been deprecated since version %s", action.DeprecatedSince)
+		}
+
 		f.Type().Id(id).Struct(statements...)
 	}
 
