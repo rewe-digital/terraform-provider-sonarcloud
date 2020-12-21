@@ -115,7 +115,7 @@ func (re ResponseExample) Keys() []string {
 func response(controller, action string) {
 	ctx := context.Background()
 	ctx, _ = context.WithTimeout(ctx, 10*time.Second)
-	req, err := http.NewRequestWithContext(ctx, "GET", "http://www.sonarcloud.io/api/webservices/response_example", nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", "https://www.sonarcloud.io/api/webservices/response_example", nil)
 	guard(err)
 
 	q := req.URL.Query()
