@@ -14,6 +14,7 @@ terraform-provider-sonarcloud
 *.tfvars
 *.tfstate*
 .terraform
+.terraform.lock.hcl
 
 # Debug output
 *.log
