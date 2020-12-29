@@ -103,6 +103,9 @@ func resourcePermissionCreate(ctx context.Context, d *schema.ResourceData, m int
 		}()
 	}
 
+	// FIXME: use StateChangeConf to handle eventual consistency
+	time.Sleep(1 * time.Second)
+
 	// Async wait for all requests to be done
 	c := make(chan struct{})
 	go func() {
@@ -116,7 +119,7 @@ func resourcePermissionCreate(ctx context.Context, d *schema.ResourceData, m int
 		// Set resource id
 		if diags == nil || !diags.HasError() {
 			d.SetId(group + project)
-			resourcePermissionRead(ctx, d, m)
+			return resourcePermissionRead(ctx, d, m)
 		}
 	case <-time.After(30 * time.Second):
 		return diag.Errorf("requests timed out")
@@ -131,24 +134,15 @@ func resourcePermissionRead(ctx context.Context, d *schema.ResourceData, m inter
 	// Get all resource values needed to read the remote resource
 	project := d.Get("project").(string)
 	group := d.Get("group").(string)
-
-	// Fill in api action struct
-	// Note: there is no direct endpoint to get the team, so we have to do a search and filter by name.
-	search := api.PermissionsGroupsSearch{
-		ProjectKey: project,
-		Q:          group,
-	}
-
-	// Encode the values
-	encoder := form.NewEncoder()
-	values, err := encoder.Encode(&search)
-	if err != nil {
-		return diag.FromErr(err)
+	permissions := d.Get("permissions").([]interface{})
+	var params []string
+	if project != "" {
+		params = []string{"projectKey", project}
 	}
 
 	// Cast m to SonarClient and create GET request for URI with encoded values
 	sc := m.(*SonarClient)
-	req, err := sc.NewRequest("GET", fmt.Sprintf("%s/permissions/groups", API), strings.NewReader(values.Encode()))
+	req, err := sc.NewRequestWithParameters("GET", fmt.Sprintf("%s/permissions/groups", API), params...)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -175,11 +169,40 @@ func resourcePermissionRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	// Check if the resource exists in the list of retrieved resources
 	// TODO: anti-corruption layer that hides this implementation detail
-	found := false
+	groupFound := false
 	for _, g := range searchResponse.Groups {
 		if g.Name == group {
-			found = true
-			if err := d.Set("permissions", g.Permissions); err != nil {
+			groupFound = true
+
+			actualPermissions := make([]string, 0)
+			permissionFound := false
+			for _, permission := range permissions {
+				permissionFound = false
+				for _, groupPermission := range g.Permissions {
+					if permission.(string) == groupPermission {
+						permissionFound = true
+						break
+					}
+				}
+				if permissionFound {
+					actualPermissions = append(actualPermissions, permission.(string))
+				}
+			}
+
+			for _, groupPermission := range g.Permissions {
+				permissionFound = false
+				for _, permission := range permissions {
+					if permission.(string) == groupPermission {
+						permissionFound = true
+						break
+					}
+				}
+				if !permissionFound {
+					actualPermissions = append(actualPermissions, groupPermission)
+				}
+			}
+
+			if err := d.Set("permissions", actualPermissions); err != nil {
 				return diag.FromErr(err)
 			}
 			break
@@ -187,7 +210,7 @@ func resourcePermissionRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	// Unset the id if the resource has not been found
-	if !found {
+	if !groupFound {
 		d.SetId("")
 	}
 
@@ -270,6 +293,9 @@ func resourcePermissionUpdate(ctx context.Context, d *schema.ResourceData, m int
 			}
 		}()
 	}
+
+	// FIXME: use StateChangeConf to handle eventual consistency
+	time.Sleep(1 * time.Second)
 
 	c := make(chan struct{})
 	go func() {

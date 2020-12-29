@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     sonarcloud = {
-      versions = ["0.1"]
+      version  = "~> 0.1"
       source   = "rewe-digital.com/platform/sonarcloud"
     }
   }
@@ -26,4 +26,15 @@ resource "sonarcloud_user_group_member" "example_member" {
 
 output "groups" {
   value = { for k, group in data.sonarcloud_user_groups.groups.groups : lower(group.name) => group }
+}
+
+resource "sonarcloud_permission" "global" {
+  group = sonarcloud_user_group.test_group.name
+  permissions = ["scan"]
+}
+
+resource "sonarcloud_permission" "project" {
+  project = "${var.organization}_test"
+  group = sonarcloud_user_group.test_group.name
+  permissions = ["admin", "scan"]
 }
