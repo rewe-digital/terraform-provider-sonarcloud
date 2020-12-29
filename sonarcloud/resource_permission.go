@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"terraform-provider-sonarcloud/pkg/api"
+	"terraform-provider-sonarcloud/pkg/collection"
 	"time"
 )
 
@@ -174,33 +175,8 @@ func resourcePermissionRead(ctx context.Context, d *schema.ResourceData, m inter
 		if g.Name == group {
 			groupFound = true
 
-			actualPermissions := make([]string, 0)
-			permissionFound := false
-			for _, permission := range permissions {
-				permissionFound = false
-				for _, groupPermission := range g.Permissions {
-					if permission.(string) == groupPermission {
-						permissionFound = true
-						break
-					}
-				}
-				if permissionFound {
-					actualPermissions = append(actualPermissions, permission.(string))
-				}
-			}
-
-			for _, groupPermission := range g.Permissions {
-				permissionFound = false
-				for _, permission := range permissions {
-					if permission.(string) == groupPermission {
-						permissionFound = true
-						break
-					}
-				}
-				if !permissionFound {
-					actualPermissions = append(actualPermissions, groupPermission)
-				}
-			}
+			gp := collection.ToInterfaceSlice(g.Permissions)
+			actualPermissions := collection.Ordered(gp, permissions)
 
 			if err := d.Set("permissions", actualPermissions); err != nil {
 				return diag.FromErr(err)
@@ -231,34 +207,7 @@ func resourcePermissionUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 	// Find which permissions to add and which to remove
 	o, n := d.GetChange("permissions")
-	added := make([]string, 0)
-	removed := make([]string, 0)
-
-	// Check which old values are not there anymore
-	for _, ov := range o.([]interface{}) {
-		found := false
-		for _, nv := range n.([]interface{}) {
-			if ov == nv {
-				found = true
-			}
-		}
-		if !found {
-			removed = append(removed, ov.(string))
-		}
-	}
-
-	// Check which values have been added
-	for _, nv := range n.([]interface{}) {
-		existed := false
-		for _, ov := range o.([]interface{}) {
-			if nv == ov {
-				existed = true
-			}
-		}
-		if !existed {
-			added = append(added, nv.(string))
-		}
-	}
+	added, removed := collection.Diff(o.([]interface{}), n.([]interface{}))
 
 	// Get client and prepare synchronization
 	sc := m.(*SonarClient)
