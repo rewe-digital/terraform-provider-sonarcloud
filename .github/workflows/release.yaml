@@ -26,3 +26,13 @@ jobs:
             Test Test
           draft: true
           prerelease: true
+      - name: Add binaries to release
+        id: upload_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.ORG_FETCH_PAT }}
+        with:
+          upload_url: ${{ steps.prepare_release.outputs.upload_url }}
+          asset_path: ./bin/terraform-provider-sonarcloud_0.1.0_linux_amd64
+          asset_name: terraform-provider-sonarcloud_0.1.0_linux_amd64
+          asset_content_type: application/octet-stream
