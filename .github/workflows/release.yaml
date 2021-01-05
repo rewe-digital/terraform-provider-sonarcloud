@@ -40,8 +40,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ORG_FETCH_PAT }}
         with:
           upload_url: ${{ steps.prepare_release.outputs.upload_url }}
-          asset_path: format(./bin/terraform-provider-sonarcloud_{0}_linux_amd64, ${{steps.get-plain-version.outputs.version}})
-          asset_name: format(terraform-provider-sonarcloud_{0}_linux_amd64, ${{steps.get-plain-version.outputs.version}})
+          asset_path: ${{ format('./bin/terraform-provider-sonarcloud_{0}_linux_amd64', steps.get-plain-version.outputs.version) }}
+          asset_name: ${{ format('terraform-provider-sonarcloud_{0}_linux_amd64', steps.get-plain-version.outputs.version) }}
           asset_content_type: application/octet-stream
       - name: Add mac binaries to release
         uses: actions/upload-release-asset@v1
@@ -49,8 +49,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ORG_FETCH_PAT }}
         with:
           upload_url: ${{ steps.prepare_release.outputs.upload_url }}
-          asset_path: format(./bin/terraform-provider-sonarcloud_{0}_darwin_amd64, ${{steps.get-plain-version.outputs.version}})
-          asset_name: format(terraform-provider-sonarcloud_{0}_darwin_amd64, ${{steps.get-plain-version.outputs.version}})
+          asset_path: ${{ format('./bin/terraform-provider-sonarcloud_{0}_darwin_amd64', steps.get-plain-version.outputs.version) }}
+          asset_name: ${{ format('terraform-provider-sonarcloud_{0}_darwin_amd64', steps.get-plain-version.outputs.version) }}
           asset_content_type: application/octet-stream
       - name: Add window binaries to release
         uses: actions/upload-release-asset@v1
@@ -58,6 +58,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ORG_FETCH_PAT }}
         with:
           upload_url: ${{ steps.prepare_release.outputs.upload_url }}
-          asset_path: format(./bin/terraform-provider-sonarcloud_{0}_windows_amd64, ${{steps.get-plain-version.outputs.version}})
-          asset_name: format(terraform-provider-sonarcloud_{0}_windows_amd64, ${{steps.get-plain-version.outputs.version}})
+          asset_path: ${{ format('./bin/terraform-provider-sonarcloud_{0}_windows_amd64', steps.get-plain-version.outputs.version) }}
+          asset_name: ${{ format('terraform-provider-sonarcloud_{0}_windows_amd64', steps.get-plain-version.outputs.version) }}
           asset_content_type: application/octet-stream
