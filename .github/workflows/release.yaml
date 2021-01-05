@@ -20,7 +20,7 @@ jobs:
           go-version: '1.15'
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@56f5b77f7fa4a8fe068bf22b732ec036cc9bc13f
         with:
           version: latest
           args: release --rm-dist
