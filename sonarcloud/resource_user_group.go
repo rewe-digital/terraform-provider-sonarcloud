@@ -14,6 +14,7 @@ import (
 
 func resourceSourceUserGroup() *schema.Resource {
 	return &schema.Resource{
+		Description:   "This resource manages user groups for the organization.",
 		CreateContext: resourceUserGroupCreate,
 		ReadContext:   resourceUserGroupRead,
 		UpdateContext: resourceUserGroupUpdate,

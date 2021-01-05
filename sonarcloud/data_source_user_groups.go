@@ -30,32 +30,39 @@ type UserGroup struct {
 
 func dataSourceUserGroups() *schema.Resource {
 	return &schema.Resource{
+		Description: "Data source that retrieves a list of user groups for the configured organization.",
 		ReadContext: dataSourceGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"groups": &schema.Schema{
-				Type:     schema.TypeList,
-				Computed: true,
+				Type:        schema.TypeList,
+				Computed:    true,
+				Description: "The groups of this organization.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "Numerical ID of the user group.",
 						},
 						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Name of the user group.",
 						},
 						"description": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Description of the user group.",
 						},
 						"members_count": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "Number of members in this user group.",
 						},
 						"default": {
-							Type:     schema.TypeBool,
-							Computed: true,
+							Type:        schema.TypeBool,
+							Computed:    true,
+							Description: "Whether new members are added to this user group per default or not.",
 						},
 					},
 				},

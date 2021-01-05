@@ -15,8 +15,9 @@ import (
 	"time"
 )
 
-func resourcePermission() *schema.Resource {
+func resourceUserGroupPermissions() *schema.Resource {
 	return &schema.Resource{
+		Description:   "This resource manages the permissions of a user group for the whole organization or a specific project.",
 		CreateContext: resourcePermissionCreate,
 		ReadContext:   resourcePermissionRead,
 		UpdateContext: resourcePermissionUpdate,
@@ -25,19 +26,19 @@ func resourcePermission() *schema.Resource {
 			"project": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Project key of the project to restrict the permissions to",
+				Description: "The key of the project to restrict the permissions to.",
 				ForceNew:    true,
 			},
 			"group": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "User group to set the permissions for",
+				Description: "User group to set the permissions for.",
 				ForceNew:    true,
 			},
 			"permissions": {
 				Type:        schema.TypeList,
 				Required:    true,
-				Description: "List of permissions to grant",
+				Description: "List of permissions to grant.",
 				ForceNew:    false,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
