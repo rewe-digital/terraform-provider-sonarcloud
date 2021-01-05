@@ -53,7 +53,7 @@ jobs:
           asset_path: ${{ format('./bin/terraform-provider-sonarcloud_{0}_darwin_amd64', steps.get-plain-version.outputs.version) }}
           asset_name: ${{ format('terraform-provider-sonarcloud_{0}_darwin_amd64', steps.get-plain-version.outputs.version) }}
           asset_content_type: application/octet-stream
-      - name: Add window binaries to release
+      - name: Add windows binaries to release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.ORG_FETCH_PAT }}
