@@ -10,6 +10,7 @@
 # Binary
 terraform-provider-sonarcloud
 bin/
+dist/
 
 # Prevent commiting test-variables and Terraform state
 *.tfvars
