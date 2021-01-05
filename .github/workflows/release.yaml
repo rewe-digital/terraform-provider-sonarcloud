@@ -2,6 +2,9 @@ name: Prepare Release
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - v*
 
 jobs:
   build:
@@ -12,8 +15,12 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '1.15'
+      - id: get-plain-version
+        run: |
+          version=$(echo ${{ github.ref }} | cut -c2-)
+          echo "::set-output name=version::$version"
       - name: Build release binaries
-        run: make release
+        run: VERSION="${{steps.get-plain-version.outputs.version}}" make release
       - name: Prepare Release
         id: prepare_release
         uses: actions/create-release@v1
@@ -33,8 +40,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ORG_FETCH_PAT }}
         with:
           upload_url: ${{ steps.prepare_release.outputs.upload_url }}
-          asset_path: ./bin/terraform-provider-sonarcloud_0.1.0_linux_amd64
-          asset_name: terraform-provider-sonarcloud_0.1.0_linux_amd64
+          asset_path: format(./bin/terraform-provider-sonarcloud_{0}_linux_amd64, ${{steps.get-plain-version.outputs.version}})
+          asset_name: format(terraform-provider-sonarcloud_{0}_linux_amd64, ${{steps.get-plain-version.outputs.version}})
           asset_content_type: application/octet-stream
       - name: Add mac binaries to release
         uses: actions/upload-release-asset@v1
@@ -42,8 +49,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ORG_FETCH_PAT }}
         with:
           upload_url: ${{ steps.prepare_release.outputs.upload_url }}
-          asset_path: ./bin/terraform-provider-sonarcloud_0.1.0_darwin_amd64
-          asset_name: terraform-provider-sonarcloud_0.1.0_darwin_amd64
+          asset_path: format(./bin/terraform-provider-sonarcloud_{0}_darwin_amd64, ${{steps.get-plain-version.outputs.version}})
+          asset_name: format(terraform-provider-sonarcloud_{0}_darwin_amd64, ${{steps.get-plain-version.outputs.version}})
           asset_content_type: application/octet-stream
       - name: Add window binaries to release
         uses: actions/upload-release-asset@v1
@@ -51,6 +58,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ORG_FETCH_PAT }}
         with:
           upload_url: ${{ steps.prepare_release.outputs.upload_url }}
-          asset_path: ./bin/terraform-provider-sonarcloud_0.1.0_windows_amd64
-          asset_name: terraform-provider-sonarcloud_0.1.0_windows_amd64
+          asset_path: format(./bin/terraform-provider-sonarcloud_{0}_windows_amd64, ${{steps.get-plain-version.outputs.version}})
+          asset_name: format(terraform-provider-sonarcloud_{0}_windows_amd64, ${{steps.get-plain-version.outputs.version}})
           asset_content_type: application/octet-stream
