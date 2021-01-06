@@ -7,7 +7,7 @@ This resource manages the permissions of a user group for the whole organization
 ### Global permissions
 
 ```hcl
-resource "sonarcloud_user_group_permission" "global" {
+resource "sonarcloud_user_group_permissions" "global" {
   group = "my-group"
   permissions = ["scan"]
 }
@@ -18,7 +18,7 @@ resource "sonarcloud_user_group_permission" "global" {
 ### Permissions on a specific project
 
 ```hcl
-resource "sonarcloud_user_group_permission" "project" {
+resource "sonarcloud_user_group_permissions" "project" {
   project = "my-project"
   group = "my-group"
   permissions = ["admin", "scan"]
