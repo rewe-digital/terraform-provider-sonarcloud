@@ -1,18 +1,17 @@
+// This small program is used to generate request structs for the SonarCloud API.
+// It expects a JSON file with the same structure as returned by `https://sonarcloud.io/api/webservices/list`.
+// See AllowedEndpoints for the list of endpoints that are considered during generation.
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
+	. "github.com/dave/jennifer/jen"
 	"github.com/iancoleman/strcase"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
-	"time"
-
-	. "github.com/dave/jennifer/jen"
 )
 
 var (
@@ -39,8 +38,6 @@ func main() {
 	for _, service := range api.Services {
 		services(service, output)
 	}
-
-	//client(output)
 }
 
 func exit(code int, s interface{}) {
@@ -89,56 +86,6 @@ type Param struct {
 	DeprecatedSince string `json:"deprecatedSince"`
 }
 
-type ResponseExample struct {
-	Format  string `json:"format"`
-	Example string `json:"example"`
-}
-
-func (re ResponseExample) Keys() []string {
-	//fmt.Printf("Example: %+v\n", re.Example)
-
-	example := make(map[string]interface{})
-	err := json.Unmarshal([]byte(re.Example), &example)
-	guard(err)
-
-	i := 0
-	keys := make([]string, len(example))
-	for key := range example {
-		keys[i] = key
-		i++
-	}
-
-	return keys
-}
-
-// TODO: correctly implement creating a response type from the example
-func response(controller, action string) {
-	ctx := context.Background()
-	ctx, _ = context.WithTimeout(ctx, 10*time.Second)
-	req, err := http.NewRequestWithContext(ctx, "GET", "https://www.sonarcloud.io/api/webservices/response_example", nil)
-	guard(err)
-
-	q := req.URL.Query()
-	q.Add("action", action)
-	q.Add("controller", controller)
-	req.URL.RawQuery = q.Encode()
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	guard(err)
-
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	guard(err)
-
-	re := ResponseExample{}
-	err = json.Unmarshal(body, &re)
-	guard(err)
-
-	fmt.Printf("%+v\n", re.Keys())
-}
-
 func services(service Service, output string) {
 	path := strings.Split(service.Path, "/")
 	endpoint := path[len(path)-1]
@@ -153,11 +100,8 @@ func services(service Service, output string) {
 	f.Commentf("// AUTOMATICALLY GENERATED, DO NOT EDIT BY HAND!\n")
 
 	for _, action := range service.Actions {
-		//fmt.Println("Action: " + action.Key)
 		if action.HasResponseExample {
-			//fmt.Println("Response Example:")
 			// TODO: generate response type
-			//response(service.Path, action.Key)
 		}
 
 		statements := make([]Code, 0)
@@ -178,40 +122,6 @@ func services(service Service, output string) {
 	}
 
 	err := f.Save(fmt.Sprintf("%s%s.go", output, endpoint))
-	if err != nil {
-		fmt.Printf("ERROR: %+v\n", err)
-	}
-}
-
-// WIP
-func client(output string) {
-	fmt.Println("Generating client")
-
-	f := NewFile("api")
-	f.Commentf("// AUTOMATICALLY GENERATED, DO NOT EDIT BY HAND!\n")
-
-	f.Func().Id("New").Params().Block(
-		Id("client").Op(":=").Qual("http", "Client"),
-		Return(Id("client")),
-	)
-
-	//client := &http.Client{Timeout: 10 * time.Second}
-	//
-	//var diags diag.Diagnostics
-	//
-	//req, err := http.NewRequest("GET", fmt.Sprintf("%s/user_groups/search", API), nil)
-	//if err != nil {
-	//	return diag.FromErr(err)
-	//}
-	//
-	//c := m.(*Config)
-	//q := req.URL.Query()
-	//q.Add("organization", c.Organization)
-	//req.URL.RawQuery = q.Encode()
-	//
-	//req.SetBasicAuth(c.Token, "")
-
-	err := f.Save(fmt.Sprintf("%s/client.go", output))
 	if err != nil {
 		fmt.Printf("ERROR: %+v\n", err)
 	}
