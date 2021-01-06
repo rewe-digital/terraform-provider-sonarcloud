@@ -1,12 +1,31 @@
-# terraform-provider-sonarcloud
+# Terraform Provider SonarCloud
 
-A Terraform provider for managing SonarCloud groups and users.
+A Terraform provider for managing SonarCloud user groups and their permissions.
 
-## Installing
+## Requirements
 
-Run `make install` to build the terraform provider and store it in `~/.terraform/plugins`. 
+-	[Terraform](https://www.terraform.io/downloads.html) >= 0.13.x
+-	[Go](https://golang.org/doc/install) >= 1.15
+-   [GoReleaser](https://goreleaser.com/) >= 0.153.x
 
-## Testing
+## Installing the Provider locally
+
+1. Clone the repository
+1. Enter the repository directory
+1. Run `make install` to build the terraform provider and store it in `~/.terraform/plugins`. 
+
+**Note**: this uses Goreleaser under the hood. Alternatively you can use `go build` and move the binary to the correct location yourself.
+
+## Developing the Provider
+
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
+
+The source files for sending requests to SonarCloud are generated and stored in `pkg/api`.
+The API is generated based on the contents of `gen/services.json`, which is the output of `https://sonarcloud.io/api/webservices/list`.
+See the `AllowedEndpoints` in `gen/main.go` for the list of endpoints that is used for creating API source files.
+Run `make gen` to (re)generate the API source files.
+
+To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 Run `make test` to run all unit tests. This should work without further config and not touch any infrastructure.
 
@@ -25,9 +44,3 @@ The project should have the following 3 groups:
 | `SONARCLOUD_TEST_USER_LOGIN` | The login for testing `sonarcloud_user_group_member`. Must be an existing member of the org and in the form of `<github_handle>@github` if you have imported the user via GitHub. |
 | `SONARCLOUD_TEST_GROUP_NAME` | The name of an existing group to which the test-user will be added and removed from. |
  
- ## Development
- 
- The source files for sending requests to SonarCloud are generated and stored in `pkg/api`.
- The API is generated based on the contents of `gen/services.json`, which is the output of `https://sonarcloud.io/api/webservices/list`.
- See the `AllowedEndpoints` in `gen/main.go` for the list of endpoints that is used for creating API source files.
- Run `make gen` to (re)generate the API source files.
