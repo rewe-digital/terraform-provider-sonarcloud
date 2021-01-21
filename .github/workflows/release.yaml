@@ -26,4 +26,4 @@ jobs:
           args: release --rm-dist
         env:
           # TODO: add GPG fingerprint
-          GITHUB_TOKEN: ${{ secrets.ORG_FETCH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
