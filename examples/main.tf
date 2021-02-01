@@ -12,6 +12,12 @@ provider "sonarcloud" {
   token        = var.token
 }
 
+data "sonarcloud_organization_members" "users" {}
+
+output "users" {
+  value = data.sonarcloud_organization_members.users
+}
+
 data "sonarcloud_user_groups" "groups" {}
 
 resource "sonarcloud_user_group" "example_group" {

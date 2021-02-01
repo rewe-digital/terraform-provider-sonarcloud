@@ -31,7 +31,8 @@ func Provider() *schema.Provider {
 			"sonarcloud_user_token":             resourceUserToken(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"sonarcloud_user_groups": dataSourceUserGroups(),
+			"sonarcloud_user_groups":          dataSourceUserGroups(),
+			"sonarcloud_organization_members": dataSourceOrganizationMembers(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
