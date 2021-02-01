@@ -38,3 +38,12 @@ resource "sonarcloud_user_group_permissions" "project" {
   group = sonarcloud_user_group.example_group.name
   permissions = ["admin", "scan"]
 }
+
+resource "sonarcloud_user_token" "test_token" {
+  login = var.test_token_login
+  name  = "EXAMPLE_TOKEN"
+}
+
+output "token_value" {
+  value = sonarcloud_user_token.test_token.token
+}

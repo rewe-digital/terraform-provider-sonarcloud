@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	AllowedEndpoints = []string{"user_groups", "permissions"}
+	AllowedEndpoints = []string{"user_groups", "permissions", "user_tokens"}
 )
 
 type Api struct {
