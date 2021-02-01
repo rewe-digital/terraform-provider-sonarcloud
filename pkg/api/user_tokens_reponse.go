@@ -13,6 +13,7 @@ type UserTokensSearchResponse struct {
 	Tokens []UserTokenSearchResponseToken `json:"userTokens,omitempty"` // User login
 }
 
+// UserTokenSearchResponseToken: Single token belonging to a UserTokensSearchResponse
 type UserTokenSearchResponseToken struct {
 	Name string `json:"name,omitempty"` // Token name
 }
