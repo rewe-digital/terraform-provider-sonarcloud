@@ -42,5 +42,6 @@ The project should have the following 3 groups:
 | `SONARCLOUD_ORGANIZATION` | The name of the org to run tests against. |
 | `SONARCLOUD_TOKEN` | A token with admin permissions for the organization. |
 | `SONARCLOUD_TEST_USER_LOGIN` | The login for testing `sonarcloud_user_group_member`. Must be an existing member of the org and in the form of `<github_handle>@github` if you have imported the user via GitHub. |
-| `SONARCLOUD_TEST_GROUP_NAME` | The name of an existing group to which the test-user will be added and removed from. |
+| `SONARCLOUD_TEST_GROUP_NAME` | The name of an existing group to which the test-user will be added and removed from. | 
+| `SONARCLOUD_TOKEN_TEST_USER_LOGIN` | The login for testing `sonarcloud_user_token`. This must be the login that also has the existing `SONARCLOUD_TOKEN`. |
  
