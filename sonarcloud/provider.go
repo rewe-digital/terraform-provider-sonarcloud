@@ -25,8 +25,8 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"sonarcloud_user_group":             resourceSourceUserGroup(),
-			"sonarcloud_user_group_member":      resourceSourceUserGroupMember(),
+			"sonarcloud_user_group":             resourceUserGroup(),
+			"sonarcloud_user_group_member":      resourceUserGroupMember(),
 			"sonarcloud_user_group_permissions": resourceUserGroupPermissions(),
 			"sonarcloud_user_token":             resourceUserToken(),
 		},

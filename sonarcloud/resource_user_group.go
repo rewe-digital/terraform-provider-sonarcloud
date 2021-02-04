@@ -12,7 +12,7 @@ import (
 	"terraform-provider-sonarcloud/pkg/api"
 )
 
-func resourceSourceUserGroup() *schema.Resource {
+func resourceUserGroup() *schema.Resource {
 	return &schema.Resource{
 		Description:   "This resource manages user groups for the organization.",
 		CreateContext: resourceUserGroupCreate,

@@ -20,7 +20,7 @@ type UserGroupUser struct {
 	Name  string `json:"name"`
 }
 
-func resourceSourceUserGroupMember() *schema.Resource {
+func resourceUserGroupMember() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceUserGroupMemberCreate,
 		ReadContext:   resourceUserGroupMemberRead,
