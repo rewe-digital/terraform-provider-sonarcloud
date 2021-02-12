@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     sonarcloud = {
-      version  = "= 0.1.0-local"
-      source   = "rewe-digital.com/platform/sonarcloud"
+      source = "rewe-digital/sonarcloud"
+      version = "0.1.0"
     }
   }
 }
