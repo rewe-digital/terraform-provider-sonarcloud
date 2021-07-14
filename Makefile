@@ -8,6 +8,9 @@ BINARY_GLOB=./dist/terraform-provider-${NAME}_${OS_ARCH}/terraform*
 
 default: install
 
+update-services-json:
+	curl https://sonarcloud.io/api/webservices/list | jq -r . > gen/services.json
+
 gen:
 	go generate
 

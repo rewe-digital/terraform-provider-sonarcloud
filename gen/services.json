@@ -248,55 +248,12 @@
       "actions": [
         {
           "key": "search",
-          "description": "Search for components",
+          "description": "Search for projects. Used to provide the ability to search for any component but this option has been removed and webservice 'api/components/tree' should be used instead for this purpose",
           "internal": false,
           "post": false,
           "hasResponseExample": true,
-          "changelog": [
-            {
-              "description": "Field 'id' from response has been removed",
-              "version": "8.0"
-            },
-            {
-              "description": "The use of 'BRC' as value for parameter 'qualifiers' is deprecated",
-              "version": "7.6"
-            }
-          ],
+          "changelog": [],
           "params": [
-            {
-              "key": "language",
-              "description": "Language key. If provided, only components for the given language are returned.",
-              "required": false,
-              "internal": false,
-              "exampleValue": "css",
-              "possibleValues": [
-                "abap",
-                "apex",
-                "c",
-                "cobol",
-                "cpp",
-                "cs",
-                "css",
-                "flex",
-                "go",
-                "java",
-                "js",
-                "jsp",
-                "kotlin",
-                "objc",
-                "php",
-                "plsql",
-                "py",
-                "ruby",
-                "scala",
-                "swift",
-                "ts",
-                "tsql",
-                "vbnet",
-                "web",
-                "xml"
-              ]
-            },
             {
               "key": "organization",
               "description": "Organization key",
@@ -327,19 +284,6 @@
               "required": false,
               "internal": false,
               "exampleValue": "sonar"
-            },
-            {
-              "key": "qualifiers",
-              "description": "Comma-separated list of component qualifiers. Filter the results with the specified qualifiers. Possible values are:<ul><li>BRC - Sub-projects</li><li>DIR - Directories</li><li>FIL - Files</li><li>TRK - Projects</li><li>UTS - Test Files</li></ul>",
-              "required": true,
-              "internal": false,
-              "possibleValues": [
-                "BRC",
-                "DIR",
-                "FIL",
-                "TRK",
-                "UTS"
-              ]
             }
           ]
         },
@@ -2891,9 +2835,7 @@
               "required": false,
               "internal": false,
               "defaultValue": "1",
-              "exampleValue": "42",
-              "deprecatedKey": "pageIndex",
-              "deprecatedKeySince": "5.2"
+              "exampleValue": "42"
             },
             {
               "key": "projectId",
@@ -2915,9 +2857,7 @@
               "required": false,
               "internal": false,
               "defaultValue": "25",
-              "exampleValue": "20",
-              "deprecatedKey": "pageSize",
-              "deprecatedKeySince": "5.2"
+              "exampleValue": "20"
             },
             {
               "key": "q",
@@ -3282,7 +3222,7 @@
           "params": [
             {
               "key": "branch",
-              "description": "Long living branch key",
+              "description": "Long-lived branch key",
               "required": false,
               "internal": false,
               "exampleValue": "feature/my_branch"
@@ -3331,7 +3271,7 @@
           "params": [
             {
               "key": "branch",
-              "description": "Long living branch key",
+              "description": "Long-lived branch key",
               "required": false,
               "internal": false,
               "exampleValue": "feature/my_branch"
@@ -4984,8 +4924,8 @@
                 "apex",
                 "java",
                 "web",
-                "flex",
                 "xml",
+                "flex",
                 "vbnet",
                 "swift",
                 "cpp",
@@ -5070,8 +5010,8 @@
                 "apex",
                 "java",
                 "web",
-                "flex",
                 "xml",
+                "flex",
                 "vbnet",
                 "swift",
                 "cpp",
@@ -5139,8 +5079,8 @@
                 "apex",
                 "java",
                 "web",
-                "flex",
                 "xml",
+                "flex",
                 "vbnet",
                 "swift",
                 "cpp",
@@ -5223,8 +5163,8 @@
                 "apex",
                 "java",
                 "web",
-                "flex",
                 "xml",
+                "flex",
                 "vbnet",
                 "swift",
                 "cpp",
@@ -5700,8 +5640,8 @@
                 "apex",
                 "java",
                 "web",
-                "flex",
                 "xml",
+                "flex",
                 "vbnet",
                 "swift",
                 "cpp",
@@ -5867,8 +5807,8 @@
                 "apex",
                 "java",
                 "web",
-                "flex",
                 "xml",
+                "flex",
                 "vbnet",
                 "swift",
                 "cpp",
@@ -6010,8 +5950,8 @@
                 "apex",
                 "java",
                 "web",
-                "flex",
                 "xml",
+                "flex",
                 "vbnet",
                 "swift",
                 "cpp",
@@ -6247,8 +6187,8 @@
                 "apex",
                 "java",
                 "web",
-                "flex",
                 "xml",
+                "flex",
                 "vbnet",
                 "swift",
                 "cpp",
@@ -6392,6 +6332,7 @@
                 "debtRemFn",
                 "defaultDebtRemFn",
                 "defaultRemFn",
+                "deprecatedKeys",
                 "effortToFixDescription",
                 "gapDescription",
                 "htmlDesc",
@@ -7431,9 +7372,7 @@
               "required": false,
               "internal": false,
               "defaultValue": "1",
-              "exampleValue": "42",
-              "deprecatedKey": "pageIndex",
-              "deprecatedKeySince": "5.2"
+              "exampleValue": "42"
             },
             {
               "key": "ps",
@@ -7441,9 +7380,7 @@
               "required": false,
               "internal": false,
               "defaultValue": "25",
-              "exampleValue": "20",
-              "deprecatedKey": "pageSize",
-              "deprecatedKeySince": "5.2"
+              "exampleValue": "20"
             },
             {
               "key": "q",
@@ -7601,9 +7538,7 @@
               "required": false,
               "internal": false,
               "defaultValue": "1",
-              "exampleValue": "42",
-              "deprecatedKey": "pageIndex",
-              "deprecatedKeySince": "5.2"
+              "exampleValue": "42"
             },
             {
               "key": "ps",
@@ -7611,9 +7546,7 @@
               "required": false,
               "internal": false,
               "defaultValue": "25",
-              "exampleValue": "20",
-              "deprecatedKey": "pageSize",
-              "deprecatedKeySince": "5.2"
+              "exampleValue": "20"
             },
             {
               "key": "q",
