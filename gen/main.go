@@ -22,6 +22,30 @@ type Api struct {
 	Services []Service `json:"webServices"`
 }
 
+type Service struct {
+	Path        string   `json:"path"`
+	Description string   `json:"description"`
+	Actions     []Action `json:"actions"`
+}
+
+type Action struct {
+	Key                string  `json:"key"`
+	Description        string  `json:"description"`
+	Internal           bool    `json:"internal"`
+	Post               bool    `json:"post"`
+	HasResponseExample bool    `json:"hasResponseExample"`
+	Params             []Param `json:"params"`
+	DeprecatedSince    string  `json:"deprecatedSince"`
+}
+
+type Param struct {
+	Key             string `json:"key"`
+	Description     string `json:"description"`
+	Internal        bool   `json:"internal"`
+	Required        bool   `json:"required"`
+	DeprecatedSince string `json:"deprecatedSince"`
+}
+
 func main() {
 	var filename string
 	var output string
@@ -60,30 +84,6 @@ func contains(needle string, haystack []string) bool {
 		}
 	}
 	return found
-}
-
-type Service struct {
-	Path        string   `json:"path"`
-	Description string   `json:"description"`
-	Actions     []Action `json:"actions"`
-}
-
-type Action struct {
-	Key                string  `json:"key"`
-	Description        string  `json:"description"`
-	Internal           bool    `json:"internal"`
-	Post               bool    `json:"post"`
-	HasResponseExample bool    `json:"hasResponseExample"`
-	Params             []Param `json:"params"`
-	DeprecatedSince    string  `json:"deprecatedSince"`
-}
-
-type Param struct {
-	Key             string `json:"key"`
-	Description     string `json:"description"`
-	Internal        bool   `json:"internal"`
-	Required        bool   `json:"required"`
-	DeprecatedSince string `json:"deprecatedSince"`
 }
 
 func services(service Service, output string) {
