@@ -2,7 +2,7 @@ terraform {
   required_providers {
     sonarcloud = {
       source = "rewe-digital/sonarcloud"
-      version = "0.1.0"
+      version = "0.1.1"
     }
   }
 }
@@ -48,8 +48,4 @@ resource "sonarcloud_user_group_permissions" "project" {
 resource "sonarcloud_user_token" "test_token" {
   login = var.test_token_login
   name  = "EXAMPLE_TOKEN"
-}
-
-output "token_value" {
-  value = sonarcloud_user_token.test_token.token
 }
