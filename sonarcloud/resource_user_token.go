@@ -130,7 +130,7 @@ func resourceUserTokenRead(ctx context.Context, d *schema.ResourceData, m interf
 	// Check if the resource exists in the list of retrieved resources
 	// TODO: anti-corruption layer that hides this implementation detail
 	found := false
-	for _, t := range tokenResponse.Tokens {
+	for _, t := range tokenResponse.UserTokens {
 		if t.Name == name {
 			found = true
 			break
