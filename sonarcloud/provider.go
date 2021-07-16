@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const API = "https://www.sonarcloud.io/api"
+const API = "https://sonarcloud.io/api"
 
 // Provider SonarCloud
 func Provider() *schema.Provider {
