@@ -2,57 +2,99 @@ package sonarcloud
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/reinoudk/go-sonarcloud/sonarcloud"
+	"os"
 )
 
-const API = "https://sonarcloud.io/api"
+func New() tfsdk.Provider {
+	return &provider{}
+}
+
+type provider struct {
+	configured   bool
+	client       *sonarcloud.Client
+	organization string
+}
 
 // Provider SonarCloud
-func Provider() *schema.Provider {
-	return &schema.Provider{
-		Schema: map[string]*schema.Schema{
+func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Attributes: map[string]tfsdk.Attribute{
 			"organization": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("SONARCLOUD_ORGANIZATION", nil),
+				Type:     types.StringType,
+				Optional: true,
 			},
 			"token": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("SONARCLOUD_TOKEN", nil),
-				Sensitive:   true,
+				Type:      types.StringType,
+				Optional:  true,
+				Sensitive: true,
 			},
 		},
-		ResourcesMap: map[string]*schema.Resource{
-			"sonarcloud_user_group":             resourceUserGroup(),
-			"sonarcloud_user_group_member":      resourceUserGroupMember(),
-			"sonarcloud_user_group_permissions": resourceUserGroupPermissions(),
-			"sonarcloud_user_token":             resourceUserToken(),
-		},
-		DataSourcesMap: map[string]*schema.Resource{
-			"sonarcloud_user_groups":          dataSourceUserGroups(),
-			"sonarcloud_organization_members": dataSourceOrganizationMembers(),
-		},
-		ConfigureContextFunc: providerConfigure,
-	}
+	}, nil
 }
 
-func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	org := d.Get("organization").(string)
-	token := d.Get("token").(string)
-
-	c, err := NewSonarClient(org, token)
-	if err != nil {
-		return nil, diag.FromErr(err)
+func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+	var config providerData
+	diags := req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	var diags diag.Diagnostics
+	var organization string
+	if config.Organization.Unknown {
+		resp.Diagnostics.AddWarning(
+			"Unable to create client",
+			"Cannot use unknown value as organization",
+		)
+		return
+	}
 
-	return c, diags
+	if config.Organization.Null {
+		organization = os.Getenv("SONARCLOUD_ORGANIZATION")
+	} else {
+		organization = config.Organization.Value
+	}
+
+	var token string
+	if config.Token.Unknown {
+		resp.Diagnostics.AddWarning(
+			"Unable to create client",
+			"Cannot use unknown value as token",
+		)
+	}
+
+	if config.Token.Null {
+		token = os.Getenv("SONARCLOUD_TOKEN")
+	} else {
+		token = config.Token.Value
+	}
+
+	c := sonarcloud.NewClient(organization, token, nil)
+	p.client = c
+	p.organization = organization
+	p.configured = true
 }
 
-type Config struct {
-	Organization string
-	Token        string
+func (p *provider) GetResources(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
+	return map[string]tfsdk.ResourceType{
+		"sonarcloud_user_group":        resourceUserGroupType{},
+		"sonarcloud_user_group_member": resourceUserGroupMemberType{},
+		"sonarcloud_user_token":        resourceUserTokenType{},
+	}, nil
+}
+
+func (p *provider) GetDataSources(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
+	return map[string]tfsdk.DataSourceType{
+		"sonarcloud_user_groups":        dataSourceUserGroupsType{},
+		"sonarcloud_user_group_members": dataSourceUserGroupMembersType{},
+	}, nil
+}
+
+type providerData struct {
+	Organization types.String `tfsdk:"organization"`
+	Token        types.String `tfsdk:"token"`
 }

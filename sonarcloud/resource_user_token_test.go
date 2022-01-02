@@ -19,8 +19,8 @@ func TestAccUserToken(t *testing.T) {
 	name := "TEST TOKEN"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckUserToken(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t); testAccPreCheckUserToken(t) },
+		ProtoV6ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccUserTokenConfig(login, name),

@@ -12,8 +12,8 @@ func TestAccUserGroup(t *testing.T) {
 	descriptions := []string{"A test group for the SonarCloud provider", "A Group"}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccUserGroupConfig(names[0], descriptions[0]),

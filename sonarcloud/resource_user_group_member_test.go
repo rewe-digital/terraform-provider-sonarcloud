@@ -22,8 +22,8 @@ func TestAccUserGroupMember(t *testing.T) {
 	group := os.Getenv("SONARCLOUD_TEST_GROUP_NAME")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckUserGroupMember(t) },
-		ProviderFactories: testAccProviderFactories,
+		PreCheck:                 func() { testAccPreCheck(t); testAccPreCheckUserGroupMember(t) },
+		ProtoV6ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccUserGroupMemberConfig(group, login),
@@ -44,7 +44,7 @@ func testAccUserGroupMemberDestroy(s *terraform.State) error {
 func testAccUserGroupMemberConfig(group string, login string) string {
 	return fmt.Sprintf(`
 resource "sonarcloud_user_group_member" "test_group_member" {
-	group = "%s"	
+	group = "%s"
 	login = "%s"
 }
 `, group, login)
