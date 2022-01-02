@@ -2,134 +2,99 @@ package sonarcloud
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/fatih/structs"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/iancoleman/strcase"
-	"strconv"
-	"time"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_groups"
+	"math/big"
 )
 
-type UserGroupsSearchResponse struct {
-	Groups []UserGroup `json:"groups"`
-}
+type dataSourceUserGroupsType struct{}
 
-type UserGroupCreateResponse struct {
-	UserGroup `json:"group"`
-}
-
-type UserGroup struct {
-	Id           int    `json:"id"`
-	Name         string `json:"name"`
-	Description  string `json:"description"`
-	MembersCount int    `json:"membersCount"`
-	Default      bool   `json:"default"`
-}
-
-func dataSourceUserGroups() *schema.Resource {
-	return &schema.Resource{
+func (d dataSourceUserGroupsType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
 		Description: "Data source that retrieves a list of user groups for the configured organization.",
-		ReadContext: dataSourceGroupsRead,
-		Schema: map[string]*schema.Schema{
-			"groups": &schema.Schema{
-				Type:        schema.TypeList,
+		Attributes: map[string]tfsdk.Attribute{
+			"id": {
+				Type: types.StringType,
+				Computed: true,
+			},
+			"groups": {
 				Computed:    true,
 				Description: "The groups of this organization.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
+				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 						"id": {
-							Type:        schema.TypeInt,
+							Type:        types.StringType,
 							Computed:    true,
-							Description: "Numerical ID of the user group.",
+							Description: "The ID of the user group.",
 						},
 						"name": {
-							Type:        schema.TypeString,
+							Type:        types.StringType,
 							Computed:    true,
 							Description: "Name of the user group.",
 						},
 						"description": {
-							Type:        schema.TypeString,
+							Type:        types.StringType,
 							Computed:    true,
 							Description: "Description of the user group.",
 						},
 						"members_count": {
-							Type:        schema.TypeInt,
+							Type:        types.Float64Type,
 							Computed:    true,
 							Description: "Number of members in this user group.",
 						},
 						"default": {
-							Type:        schema.TypeBool,
+							Type:        types.BoolType,
 							Computed:    true,
 							Description: "Whether new members are added to this user group per default or not.",
 						},
-					},
-				},
+					}, tfsdk.ListNestedAttributesOptions{}),
 			},
 		},
-	}
+	}, nil
 }
 
-func dataSourceGroupsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func (d dataSourceUserGroupsType) NewDataSource(_ context.Context, p tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+	return dataSourceUserGroups{
+		p: *(p.(*provider)),
+	}, nil
+}
+
+type dataSourceUserGroups struct{
+	p provider
+}
+
+func (d dataSourceUserGroups) Read(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
 	var diags diag.Diagnostics
 
-	sc := m.(*SonarClient)
-	req, err := sc.NewRequest("GET", fmt.Sprintf("%s/user_groups/search", API), nil)
+	request := user_groups.SearchRequest{}
+
+	res, err := d.p.client.UserGroups.SearchAll(request)
 	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	resp, err := sc.Do(req)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return diagErrorResponse(resp, diags)
-	}
-
-	groups := &UserGroupsSearchResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&groups)
-	if err != nil {
-		return diag.Errorf("Decode error: %+v", err)
-	}
-
-	g := asLowerCaseMap(&groups.Groups)
-	if err := d.Set("groups", g); err != nil {
-		return diag.Errorf("Error setting state: %+v", err)
-	}
-
-	// always run
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
-
-	return diags
-}
-
-func asLowerCaseMap(ug *[]UserGroup) (entries []map[string]interface{}) {
-	if ug == nil {
+		resp.Diagnostics.AddError(
+			"Could not read user_groups",
+			fmt.Sprintf("The SearchAll request returned an error: %+v", err),
+		)
 		return
 	}
 
-	for _, u := range *ug {
-		m := make(map[string]interface{})
-		s := structs.New(u)
-		for _, f := range s.Fields() {
-			if f.IsExported() {
-				name := strcase.ToSnake(f.Name())
-				m[name] = f.Value()
-			}
+	result := Groups{}
+	allGroups := make([]Group, len(res.Groups))
+	for i, group := range res.Groups {
+		allGroups[i] = Group{
+			ID:           types.String{Value: big.NewFloat(group.Id).String()},
+			Default:      types.Bool{Value: group.Default},
+			Description:  types.String{Value: group.Description},
+			MembersCount: types.Number{Value: big.NewFloat(group.MembersCount)},
+			Name:         types.String{Value: group.Name},
 		}
-		entries = append(entries, m)
 	}
+	result.Groups = allGroups
+	result.ID = types.String{Value: d.p.organization}
 
-	return entries
+	diags = resp.State.Set(ctx, result)
+
+	resp.Diagnostics.Append(diags...)
 }
 
-func appendDiagErrorFromStr(diags diag.Diagnostics, s string) diag.Diagnostics {
-	return append(diags, diag.Diagnostic{
-		Severity: 0,
-		Summary:  s,
-	})
-}

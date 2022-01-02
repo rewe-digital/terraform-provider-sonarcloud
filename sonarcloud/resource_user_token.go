@@ -2,190 +2,175 @@ package sonarcloud
 
 import (
 	"context"
-	json "encoding/json"
 	"fmt"
-	"github.com/go-playground/form/v4"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"strings"
-	"terraform-provider-sonarcloud/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_tokens"
 )
 
-func resourceUserToken() *schema.Resource {
-	return &schema.Resource{
-		CreateContext: resourceUserTokenCreate,
-		ReadContext:   resourceUserTokenRead,
-		DeleteContext: resourceUserTokenDelete,
-		Schema: map[string]*schema.Schema{
+type resourceUserTokenType struct {}
+
+func (r resourceUserTokenType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Description: "This resource manages the tokens for a user.",
+		Attributes: map[string]tfsdk.Attribute{
+			"id": {
+				Type: types.StringType,
+				Computed: true,
+			},
 			"login": {
-				Type:        schema.TypeString,
+				Type: types.StringType,
 				Required:    true,
 				Description: "User login",
-				ForceNew:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
 			},
 			"name": {
-				Type:        schema.TypeString,
+				Type: types.StringType,
 				Required:    true,
 				Description: "Name of the token",
-				ForceNew:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
 			},
 			"token": {
-				Type:        schema.TypeString,
+				Type: types.StringType,
 				Description: "Value of the token",
 				Computed:    true,
 				Sensitive:   true,
 			},
 		},
-	}
+	}, nil
 }
 
-func resourceUserTokenCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func (r resourceUserTokenType) NewResource(_ context.Context, p tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+	return resourceUserToken{
+		p: *(p.(*provider)),
+	}, nil
+}
 
-	// Get all resource values
-	login := d.Get("login").(string)
-	name := d.Get("name").(string)
+type resourceUserToken struct {
+	p provider
+}
+
+func (r resourceUserToken) Create(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+	if !r.p.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. "+
+				"This leads to weird stuff happening, so we'd prefer if you didn't do that. Thanks!",
+		)
+		return
+	}
+
+	// Retrieve values from plan
+	var plan Token
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Fill in api action struct
-	create := api.UserTokensGenerate{
-		Login: login,
-		Name:  name,
+	request := user_tokens.GenerateRequest{
+		Login: plan.Login.Value,
+		Name:  plan.Name.Value,
 	}
 
-	// Encode the values
-	encoder := form.NewEncoder()
-	values, err := encoder.Encode(&create)
+	res, err := r.p.client.UserTokens.Generate(request)
 	if err != nil {
-		return diag.FromErr(err)
+		resp.Diagnostics.AddError(
+			"Could not create the user_token",
+			fmt.Sprintf("The Generate request returned an error: %+v", err),
+		)
+		return
 	}
 
-	// Cast m to SonarClient and create POST request for URI with encoded values
-	sc := m.(*SonarClient)
-	req, err := sc.NewRequest("POST", fmt.Sprintf("%s/user_tokens/generate", API), strings.NewReader(values.Encode()))
-	if err != nil {
-		return diag.FromErr(err)
+	var result = Token{
+		ID:           types.String{Value: res.Name},
+		Login: types.String{Value: res.Login},
+		Name:         types.String{Value: res.Name},
+		Token: types.String{Value: res.Token},
 	}
+	diags = resp.State.Set(ctx, result)
 
-	// Perform the request
-	resp, err := sc.Do(req)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	defer resp.Body.Close()
-
-	// Check status code and return diagnostics from ErrorResponse if needed
-	if resp.StatusCode >= 300 {
-		return diagErrorResponse(resp, diags)
-	}
-
-	// Decode JSON response to response struct
-	tokenResponse := &api.UserTokensGenerateResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&tokenResponse)
-	if err != nil {
-		return diag.Errorf("Decode error during Read: %+v", err)
-	}
-
-	// Set resource id and token value
-	if err = d.Set("token", tokenResponse.Token); err != nil {
-		return diag.Errorf("Could not set token value: %+v", err)
-	}
-	d.SetId(login + name)
-
-	return diags
+	resp.Diagnostics.Append(diags...)
 }
 
-func resourceUserTokenRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func (r resourceUserToken) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+	// Retrieve values from state
+	var state Token
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// Get resource value that's needed to read the remote resource
-	login := d.Get("login").(string)
-	name := d.Get("name").(string)
+	// Fill in api action struct
+	request := user_tokens.SearchRequest{
+		Login: state.Login.Value,
+	}
 
-	// Cast m to SonarClient and create GET request for URI with encoded values
-	sc := m.(*SonarClient)
-	req, err := sc.NewRequestWithParameters("GET", fmt.Sprintf("%s/user_tokens/search", API), "login", login)
+	response, err := r.p.client.UserTokens.Search(request)
 	if err != nil {
-		return diag.FromErr(err)
+		resp.Diagnostics.AddError(
+			"Could not read the user_token",
+			fmt.Sprintf("The Search request returned an error: %+v", err),
+		)
+		return
 	}
 
-	// Perform the request
-	resp, err := sc.Do(req)
+	// Check if the resource exists the list of retrieved resources
+	if tokenExists(response, state.Name.Value) {
+		// We cannot read the token value, so just write back the original state
+		diags = resp.State.Set(ctx, state)
+		resp.Diagnostics.Append(diags...)
+	} else {
+		resp.State.RemoveResource(ctx)
+	}
+}
+
+func (r resourceUserToken) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+	// NOOP, we always need to recreate
+}
+
+func (r resourceUserToken) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+	// Retrieve values from state
+	var state Token
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	request := user_tokens.RevokeRequest{
+		Login: state.Login.Value,
+		Name:  state.Name.Value,
+	}
+
+	err := r.p.client.UserTokens.Revoke(request)
 	if err != nil {
-		return diag.FromErr(err)
-	}
-	defer resp.Body.Close()
-
-	// Check status code and return diagnostics from ErrorResponse if needed
-	if resp.StatusCode != 200 {
-		return diagErrorResponse(resp, diags)
+		resp.Diagnostics.AddError(
+			"Could not revoke the user_token",
+			fmt.Sprintf("The Revoke request returned an error: %+v", err),
+		)
+		return
 	}
 
-	// Decode JSON response to response struct
-	tokenResponse := &api.UserTokensSearchResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&tokenResponse)
-	if err != nil {
-		return diag.Errorf("Decode error during Read: %+v", err)
-	}
+	resp.State.RemoveResource(ctx)
+}
 
-	// Check if the resource exists in the list of retrieved resources
-	// TODO: anti-corruption layer that hides this implementation detail
-	found := false
-	for _, t := range tokenResponse.UserTokens {
+func (r resourceUserToken) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+	tfsdk.ResourceImportStateNotImplemented(ctx, "Cannot import user tokens.", resp)
+}
+
+func tokenExists(response *user_tokens.SearchResponse, name string) bool {
+	for _, t := range response.UserTokens {
 		if t.Name == name {
-			found = true
-			break
+			return true
 		}
 	}
-
-	// Unset the id if the resource has not been found
-	if !found {
-		d.SetId("")
-	}
-
-	return diags
-}
-
-func resourceUserTokenDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Get all resource values
-	login := d.Get("login").(string)
-	name := d.Get("name").(string)
-
-	// Use name because the organization is always set and using an id will then throw an error...
-	del := api.UserTokensRevoke{
-		Login: login,
-		Name:  name,
-	}
-
-	// Encode the values
-	encoder := form.NewEncoder()
-	values, err := encoder.Encode(&del)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	// Cast m to SonarClient and create GET request for URI with encoded values
-	sc := m.(*SonarClient)
-	req, err := sc.NewRequest("POST", fmt.Sprintf("%s/user_tokens/revoke", API), strings.NewReader(values.Encode()))
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	// Perform the request
-	resp, err := sc.Do(req)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	defer resp.Body.Close()
-
-	// Check status code and return diagnostics from ErrorResponse if needed
-	if resp.StatusCode >= 300 {
-		return diagErrorResponse(resp, diags)
-	}
-
-	// Unset the id
-	d.SetId("")
-
-	return diags
+	return false
 }

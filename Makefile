@@ -11,9 +11,6 @@ default: install
 update-services-json:
 	curl https://sonarcloud.io/api/webservices/list | jq -r . > gen/services.json
 
-gen:
-	go generate
-
 build:
 	GORELEASER_CURRENT_TAG=$(VERSION) goreleaser build --snapshot --rm-dist
 
@@ -28,7 +25,8 @@ test:
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
+debug-test:
+	TF_ACC=true dlv test ./sonarcloud
+
 fmt:
 	go fmt ./sonarcloud ./gen
-
-.PHONY: gen

@@ -1,19 +1,18 @@
 package sonarcloud
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"os"
 	"testing"
 )
 
-var testAccProviderFactories map[string]func() (*schema.Provider, error)
-var testAccProvider *schema.Provider
+var testAccProviderFactories map[string]func() (tfprotov6.ProviderServer, error)
 
 func init() {
-	testAccProvider = Provider()
-	testAccProviderFactories = map[string]func() (*schema.Provider, error){
-		"sonarcloud": func() (*schema.Provider, error) {
-			return testAccProvider, nil
+	testAccProviderFactories = map[string]func() (tfprotov6.ProviderServer, error) {
+		"sonarcloud": func() (tfprotov6.ProviderServer, error) {
+			return tfsdk.NewProtocol6Server(New()), nil
 		},
 	}
 }

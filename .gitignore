@@ -17,6 +17,7 @@ dist/
 *.tfstate*
 .terraform
 .terraform.lock.hcl
+.envrc
 
 # Debug output
 *.log

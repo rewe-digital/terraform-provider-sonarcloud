@@ -4,8 +4,8 @@ A Terraform provider for managing SonarCloud user groups and their permissions.
 
 ## Requirements
 
--	[Terraform](https://www.terraform.io/downloads.html) >= 0.13.x
--	[Go](https://golang.org/doc/install) >= 1.15
+-	[Terraform](https://www.terraform.io/downloads.html) >= 1.x
+-	[Go](https://golang.org/doc/install) >= 1.17
 -   [GoReleaser](https://goreleaser.com/) >= 0.153.x
 
 ## Installing the Provider locally
@@ -20,11 +20,6 @@ A Terraform provider for managing SonarCloud user groups and their permissions.
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
 
-The source files for sending requests to SonarCloud are generated and stored in `pkg/api`.
-The API is generated based on the contents of `gen/services.json`, which is the output of `https://sonarcloud.io/api/webservices/list`.
-See the `AllowedEndpoints` in `gen/main.go` for the list of endpoints that is used for creating API source files.
-Run `make gen` to (re)generate the API source files.
-
 To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 Run `make test` to run all unit tests. This should work without further config and not touch any infrastructure.
@@ -37,6 +32,7 @@ The project should have the following 3 groups:
 - TEST_DONT_REMOVE - with 0 members (see environment variables below to see how to customize this)
   
  Set the following environment variables before running the acceptance test: 
+
 | Variable | Description |
 |---|---|
 | `SONARCLOUD_ORGANIZATION` | The name of the org to run tests against. |

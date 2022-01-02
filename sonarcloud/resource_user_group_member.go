@@ -2,183 +2,175 @@ package sonarcloud
 
 import (
 	"context"
-	json "encoding/json"
 	"fmt"
-	"github.com/go-playground/form/v4"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"strings"
-	"terraform-provider-sonarcloud/pkg/api"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_groups"
 )
 
-type UserGroupUsersResponse struct {
-	Users []UserGroupUser `json:"users"`
-}
+type resourceUserGroupMemberType struct{}
 
-type UserGroupUser struct {
-	Login string `json:"login"`
-	Name  string `json:"name"`
-}
-
-func resourceUserGroupMember() *schema.Resource {
-	return &schema.Resource{
-		CreateContext: resourceUserGroupMemberCreate,
-		ReadContext:   resourceUserGroupMemberRead,
-		DeleteContext: resourceUserGroupMemberDelete,
-		Schema: map[string]*schema.Schema{
+func (r resourceUserGroupMemberType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Description: "This resource manages the members of a user group.",
+		Attributes: map[string]tfsdk.Attribute{
+			"id": {
+				Type: types.StringType,
+				Computed: true,
+			},
 			"group": {
-				Type:        schema.TypeString,
+				Type:        types.StringType,
 				Optional:    true,
 				Description: "Group name",
-				ForceNew:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
 			},
 			"login": {
-				Type:        schema.TypeString,
+				Type:        types.StringType,
 				Required:    true,
 				Description: "User login",
-				ForceNew:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
+				},
 			},
 		},
-	}
+	}, nil
 }
 
-func resourceUserGroupMemberCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func (r resourceUserGroupMemberType) NewResource(_ context.Context, p tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+	return resourceUserGroupMember{
+		p: *(p.(*provider)),
+	}, nil
+}
 
-	// Get all resource values
-	group := d.Get("group").(string)
-	login := d.Get("login").(string)
+type resourceUserGroupMember struct {
+	p provider
+}
+
+func (r resourceUserGroupMember) Create(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+	if !r.p.configured {
+		resp.Diagnostics.AddError(
+			"Provider not configured",
+			"The provider hasn't been configured before apply, likely because it depends on an unknown value from another resource. "+
+				"This leads to weird stuff happening, so we'd prefer if you didn't do that. Thanks!",
+		)
+		return
+	}
+
+	// Retrieve values from plan
+	var plan GroupMember
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Fill in api action struct
-	create := api.UserGroupsAddUser{
-		Login: login,
-		Name:  group,
+	request := user_groups.AddUserRequest{
+		Login: plan.Login.Value,
+		Name:  plan.Group.Value,
+		Organization: r.p.organization,
 	}
 
-	// Encode the values
-	encoder := form.NewEncoder()
-	values, err := encoder.Encode(&create)
+	err := r.p.client.UserGroups.AddUser(request)
 	if err != nil {
-		return diag.FromErr(err)
+		resp.Diagnostics.AddError(
+			"Could not create the user_group membership",
+			fmt.Sprintf("The AddUser request returned an error: %+v", err),
+		)
+		return
 	}
 
-	// Cast m to SonarClient and create POST request for URI with encoded values
-	sc := m.(*SonarClient)
-	req, err := sc.NewRequest("POST", fmt.Sprintf("%s/user_groups/add_user", API), strings.NewReader(values.Encode()))
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	// We have no response, assume the values were set when no error has been returned and just set ID
+	state := plan
+	state.ID = types.String{Value: fmt.Sprintf("%s%s", plan.Group.Value, plan.Login.Value)}
+	diags = resp.State.Set(ctx, state)
 
-	// Perform the request
-	resp, err := sc.Do(req)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	defer resp.Body.Close()
-
-	// Check status code and return diagnostics from ErrorResponse if needed
-	if resp.StatusCode >= 300 {
-		return diagErrorResponse(resp, diags)
-	}
-
-	// Set resource id
-	d.SetId(group + login)
-
-	return diags
+	resp.Diagnostics.Append(diags...)
 }
 
-func resourceUserGroupMemberRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func (r resourceUserGroupMember) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+	// Retrieve values from state
+	var state GroupMember
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// Get resource value that's needed to read the remote resource
-	group := d.Get("group").(string)
-	login := d.Get("login").(string)
+	// Fill in api action struct
+	request := user_groups.UsersRequest{
+		Name: state.Group.Value,
+	}
 
-	// Cast m to SonarClient and create GET request for URI with encoded values
-	sc := m.(*SonarClient)
-	req, err := sc.NewRequestWithParameters("GET", fmt.Sprintf("%s/user_groups/users", API), "name", group)
+	response, err := r.p.client.UserGroups.UsersAll(request)
 	if err != nil {
-		return diag.FromErr(err)
+		resp.Diagnostics.AddError(
+			"Could not read the members of the user_group",
+			fmt.Sprintf("The UsersAll request returned an error: %+v", err),
+		)
+		return
 	}
 
-	// Perform the request
-	resp, err := sc.Do(req)
+	// Check if the resource exists the list of retrieved resources
+	if result, ok := findGroupMember(response, state.Group.Value, state.Login.Value); ok {
+		diags = resp.State.Set(ctx, result)
+		resp.Diagnostics.Append(diags...)
+	} else {
+		resp.State.RemoveResource(ctx)
+	}
+}
+
+func (r resourceUserGroupMember) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+	// NOOP, we always need to recreate
+}
+
+func (r resourceUserGroupMember) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+	// Retrieve values from state
+	var state GroupMember
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Fill in api action struct
+	request := user_groups.RemoveUserRequest{
+		Login:        state.Login.Value,
+		Name:         state.Group.Value,
+		Organization: r.p.organization,
+	}
+
+	err := r.p.client.UserGroups.RemoveUser(request)
 	if err != nil {
-		return diag.FromErr(err)
-	}
-	defer resp.Body.Close()
-
-	// Check status code and return diagnostics from ErrorResponse if needed
-	if resp.StatusCode != 200 {
-		return diagErrorResponse(resp, diags)
+		resp.Diagnostics.AddError(
+			"Could not delete the member from the user_group",
+			fmt.Sprintf("The RemoveUser request returned an error: %+v", err),
+		)
+		return
 	}
 
-	// Decode JSON response to response struct
-	usersResponse := &UserGroupUsersResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&usersResponse)
-	if err != nil {
-		return diag.Errorf("Decode error during Read: %+v", err)
-	}
+	resp.State.RemoveResource(ctx)
+}
 
-	// Check if the resource exists in the list of retrieved resources
-	// TODO: anti-corruption layer that hides this implementation detail
+func (r resourceUserGroupMember) ImportState(ctx context.Context, _ tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+	tfsdk.ResourceImportStateNotImplemented(ctx, "User group member import is not supported", resp)
+}
+
+func findGroupMember(response *user_groups.UsersResponseAll, group string, login string) (GroupMember, bool) {
+	var result GroupMember
 	found := false
-	for _, u := range usersResponse.Users {
+	for _, u := range response.Users {
 		if u.Login == login {
+			result = GroupMember{
+				Group: types.String{Value: group},
+				Login: types.String{Value: login},
+			}
 			found = true
 			break
 		}
 	}
-
-	// Unset the id if the resource has not been found
-	if !found {
-		d.SetId("")
-	}
-
-	return diags
-}
-
-func resourceUserGroupMemberDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// Get all resource values
-	group := d.Get("group").(string)
-	login := d.Get("login").(string)
-
-	// Use name because the organization is always set and using an id will then throw an error...
-	del := api.UserGroupsRemoveUser{
-		Login: login,
-		Name:  group,
-	}
-
-	// Encode the values
-	encoder := form.NewEncoder()
-	values, err := encoder.Encode(&del)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	// Cast m to SonarClient and create GET request for URI with encoded values
-	sc := m.(*SonarClient)
-	req, err := sc.NewRequest("POST", fmt.Sprintf("%s/user_groups/remove_user", API), strings.NewReader(values.Encode()))
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	// Perform the request
-	resp, err := sc.Do(req)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	defer resp.Body.Close()
-
-	// Check status code and return diagnostics from ErrorResponse if needed
-	if resp.StatusCode >= 300 {
-		return diagErrorResponse(resp, diags)
-	}
-
-	// Unset the id
-	d.SetId("")
-
-	return diags
+	return result, found
 }

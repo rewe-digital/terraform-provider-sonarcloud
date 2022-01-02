@@ -12,10 +12,12 @@ provider "sonarcloud" {
   token        = var.token
 }
 
-data "sonarcloud_organization_members" "users" {}
+data "sonarcloud_user_group_members" "members" {
+  group = "Members"
+}
 
 output "users" {
-  value = data.sonarcloud_organization_members.users
+  value = data.sonarcloud_user_group_members.users
 }
 
 data "sonarcloud_user_groups" "groups" {}
@@ -32,17 +34,6 @@ resource "sonarcloud_user_group_member" "example_member" {
 
 output "groups" {
   value = { for k, group in data.sonarcloud_user_groups.groups.groups : lower(group.name) => group }
-}
-
-resource "sonarcloud_user_group_permissions" "global" {
-  group = sonarcloud_user_group.example_group.name
-  permissions = ["scan"]
-}
-
-resource "sonarcloud_user_group_permissions" "project" {
-  project = "${var.organization}_example"
-  group = sonarcloud_user_group.example_group.name
-  permissions = ["admin", "scan"]
 }
 
 resource "sonarcloud_user_token" "test_token" {
