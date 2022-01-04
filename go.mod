@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/terraform-plugin-framework v0.5.0
 	github.com/hashicorp/terraform-plugin-go v0.4.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.9.0
-	github.com/reinoudk/go-sonarcloud v0.1.1-0.20220102180734-759426390019
+	github.com/reinoudk/go-sonarcloud v0.1.1
 )
 
 require (
