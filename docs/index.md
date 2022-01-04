@@ -33,5 +33,5 @@ provider "sonarcloud" {
 
 ### Optional
 
-- **organization** (String)
-- **token** (String, Sensitive)
+- **organization** (String) The SonarCloud organization to manage the resources for. This value must be set in the `SONARCLOUD_ORGANIZATION` environment variable if left empty.
+- **token** (String, Sensitive) The token of a user with admin permissions in the organization. This value must be set in the `SONARCLOUD_TOKEN` environment variable if left empty.

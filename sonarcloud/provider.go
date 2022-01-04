@@ -26,11 +26,15 @@ func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics)
 			"organization": {
 				Type:     types.StringType,
 				Optional: true,
+				Description: "The SonarCloud organization to manage the resources for. This value must be set in the" +
+					" `SONARCLOUD_ORGANIZATION` environment variable if left empty.",
 			},
 			"token": {
 				Type:      types.StringType,
 				Optional:  true,
 				Sensitive: true,
+				Description: "The token of a user with admin permissions in the organization. This value must be set in" +
+					" the `SONARCLOUD_TOKEN` environment variable if left empty.",
 			},
 		},
 	}, nil
