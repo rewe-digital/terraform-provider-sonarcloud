@@ -292,8 +292,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/posener/complete v1.1.1 h1:ccV59UEOTzVDnDUEFdT95ZzHVZ+5+158q8+SJb2QV5w=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
-github.com/reinoudk/go-sonarcloud v0.1.1-0.20220102180734-759426390019 h1:IZUiv2Y0OwSJVgTVrHX4BKrePBMQaI9AtHiLq/ssSLQ=
-github.com/reinoudk/go-sonarcloud v0.1.1-0.20220102180734-759426390019/go.mod h1:4mND0X97qRwCmAatoKjqySpQgR1zWVt4mgFhJL/1kw8=
+github.com/reinoudk/go-sonarcloud v0.1.1 h1:E+clwfxtx1UusvuAP0Z6ydclX8U8pFluRohNIeAt0so=
+github.com/reinoudk/go-sonarcloud v0.1.1/go.mod h1:4mND0X97qRwCmAatoKjqySpQgR1zWVt4mgFhJL/1kw8=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/russross/blackfriday v1.6.0 h1:KqfZb0pUVN2lYqZUYRddxF4OR8ZMURnJIG5Y3VRLtww=
 github.com/russross/blackfriday v1.6.0/go.mod h1:ti0ldHuxg49ri4ksnFxlkCfN+hvslNlmVHqNRXXJNAY=
