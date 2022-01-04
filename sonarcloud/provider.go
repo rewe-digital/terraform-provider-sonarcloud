@@ -89,6 +89,7 @@ func (p *provider) GetResources(_ context.Context) (map[string]tfsdk.ResourceTyp
 
 func (p *provider) GetDataSources(_ context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
 	return map[string]tfsdk.DataSourceType{
+		"sonarcloud_user_group":         dataSourceUserGroupType{},
 		"sonarcloud_user_groups":        dataSourceUserGroupsType{},
 		"sonarcloud_user_group_members": dataSourceUserGroupMembersType{},
 	}, nil
