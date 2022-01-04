@@ -14,22 +14,22 @@ type dataSourceUserGroupMembersType struct{}
 // FIXME: remove this API endpoint because it doesn't filter for organization
 // Instead, use https://sonarcloud.io/api/user_groups/users?organization=dondnonn&name=Members
 
-func (d dataSourceUserGroupMembersType)  GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d dataSourceUserGroupMembersType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
-		Description: "Data source that retrieves a list of users of the given group.",
+		Description: "This data source retrieves a list of users for the given group.",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
-				Type: types.StringType,
+				Type:     types.StringType,
 				Computed: true,
 			},
 			"group": {
-				Type: types.StringType,
-				Required: true,
-				Description: "The name of the group to get the members of.",
+				Type:        types.StringType,
+				Required:    true,
+				Description: "The name of the group.",
 			},
 			"users": {
 				Computed:    true,
-				Description: "The users that are a member of this organization.",
+				Description: "The users of the group.",
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 					"login": {
 						Type:        types.StringType,
@@ -39,8 +39,9 @@ func (d dataSourceUserGroupMembersType)  GetSchema(_ context.Context) (tfsdk.Sch
 					"name": {
 						Type:        types.StringType,
 						Computed:    true,
+						Description: "The name of this user",
 					},
-				},tfsdk.ListNestedAttributesOptions{}),
+				}, tfsdk.ListNestedAttributesOptions{}),
 			},
 		},
 	}, nil
@@ -52,7 +53,7 @@ func (d dataSourceUserGroupMembersType) NewDataSource(_ context.Context, p tfsdk
 	}, nil
 }
 
-type dataSourceUserGroupMembers struct{
+type dataSourceUserGroupMembers struct {
 	p provider
 }
 
@@ -72,7 +73,7 @@ func (d dataSourceUserGroupMembers) Read(ctx context.Context, req tfsdk.ReadData
 	res, err := d.p.client.UserGroups.UsersAll(request)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Could not read user group users",
+			"Could not read user_group_members.",
 			fmt.Sprintf("The UsersAll request returned an error: %+v", err),
 		)
 		return
@@ -82,8 +83,8 @@ func (d dataSourceUserGroupMembers) Read(ctx context.Context, req tfsdk.ReadData
 	allUsers := make([]User, len(res.Users))
 	for i, user := range res.Users {
 		allUsers[i] = User{
-			Login:            types.String{Value: user.Login},
-			Name:             types.String{Value: user.Name},
+			Login: types.String{Value: user.Login},
+			Name:  types.String{Value: user.Name},
 		}
 	}
 	result.Users = allUsers

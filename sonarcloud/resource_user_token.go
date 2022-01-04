@@ -9,35 +9,35 @@ import (
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_tokens"
 )
 
-type resourceUserTokenType struct {}
+type resourceUserTokenType struct{}
 
 func (r resourceUserTokenType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Description: "This resource manages the tokens for a user.",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
-				Type: types.StringType,
+				Type:     types.StringType,
 				Computed: true,
 			},
 			"login": {
-				Type: types.StringType,
+				Type:        types.StringType,
 				Required:    true,
-				Description: "User login",
+				Description: "The login of the user to which the token should be added. This should be the same user as configured in the provider.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
 			},
 			"name": {
-				Type: types.StringType,
+				Type:        types.StringType,
 				Required:    true,
-				Description: "Name of the token",
+				Description: "The name of the token.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
 			},
 			"token": {
-				Type: types.StringType,
-				Description: "Value of the token",
+				Type:        types.StringType,
+				Description: "The value of the generated token.",
 				Computed:    true,
 				Sensitive:   true,
 			},
@@ -89,9 +89,9 @@ func (r resourceUserToken) Create(ctx context.Context, req tfsdk.CreateResourceR
 	}
 
 	var result = Token{
-		ID:           types.String{Value: res.Name},
+		ID:    types.String{Value: res.Name},
 		Login: types.String{Value: res.Login},
-		Name:         types.String{Value: res.Name},
+		Name:  types.String{Value: res.Name},
 		Token: types.String{Value: res.Token},
 	}
 	diags = resp.State.Set(ctx, result)
@@ -153,7 +153,7 @@ func (r resourceUserToken) Delete(ctx context.Context, req tfsdk.DeleteResourceR
 	err := r.p.client.UserTokens.Revoke(request)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Could not revoke the user_token",
+			"Could not delete the user_token",
 			fmt.Sprintf("The Revoke request returned an error: %+v", err),
 		)
 		return
@@ -163,14 +163,5 @@ func (r resourceUserToken) Delete(ctx context.Context, req tfsdk.DeleteResourceR
 }
 
 func (r resourceUserToken) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-	tfsdk.ResourceImportStateNotImplemented(ctx, "Cannot import user tokens.", resp)
-}
-
-func tokenExists(response *user_tokens.SearchResponse, name string) bool {
-	for _, t := range response.UserTokens {
-		if t.Name == name {
-			return true
-		}
-	}
-	return false
+	tfsdk.ResourceImportStateNotImplemented(ctx, "Import is not supported for resource user_token.", resp)
 }

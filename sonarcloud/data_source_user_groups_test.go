@@ -10,7 +10,7 @@ func TestAccDataSourceUserGroups(t *testing.T) {
 	numberOfDefaultGroups := "3"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{

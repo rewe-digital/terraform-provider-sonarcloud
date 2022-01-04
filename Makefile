@@ -8,9 +8,6 @@ BINARY_GLOB=./dist/terraform-provider-${NAME}_${OS_ARCH}/terraform*
 
 default: install
 
-update-services-json:
-	curl https://sonarcloud.io/api/webservices/list | jq -r . > gen/services.json
-
 build:
 	GORELEASER_CURRENT_TAG=$(VERSION) goreleaser build --snapshot --rm-dist
 
@@ -29,4 +26,9 @@ debug-test:
 	TF_ACC=true dlv test ./sonarcloud
 
 fmt:
-	go fmt ./sonarcloud ./gen
+	go fmt ./sonarcloud
+
+docs:
+	go generate ./...
+
+.PHONY: docs

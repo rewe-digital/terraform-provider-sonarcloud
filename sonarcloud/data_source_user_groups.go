@@ -14,42 +14,42 @@ type dataSourceUserGroupsType struct{}
 
 func (d dataSourceUserGroupsType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
-		Description: "Data source that retrieves a list of user groups for the configured organization.",
+		Description: "This data source retrieves a list of user groups for the configured organization.",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
-				Type: types.StringType,
+				Type:     types.StringType,
 				Computed: true,
 			},
 			"groups": {
 				Computed:    true,
 				Description: "The groups of this organization.",
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-						"id": {
-							Type:        types.StringType,
-							Computed:    true,
-							Description: "The ID of the user group.",
-						},
-						"name": {
-							Type:        types.StringType,
-							Computed:    true,
-							Description: "Name of the user group.",
-						},
-						"description": {
-							Type:        types.StringType,
-							Computed:    true,
-							Description: "Description of the user group.",
-						},
-						"members_count": {
-							Type:        types.Float64Type,
-							Computed:    true,
-							Description: "Number of members in this user group.",
-						},
-						"default": {
-							Type:        types.BoolType,
-							Computed:    true,
-							Description: "Whether new members are added to this user group per default or not.",
-						},
-					}, tfsdk.ListNestedAttributesOptions{}),
+					"id": {
+						Type:        types.StringType,
+						Computed:    true,
+						Description: "The ID of the user group.",
+					},
+					"name": {
+						Type:        types.StringType,
+						Computed:    true,
+						Description: "The name of the user group.",
+					},
+					"description": {
+						Type:        types.StringType,
+						Computed:    true,
+						Description: "The description of the user group.",
+					},
+					"members_count": {
+						Type:        types.Float64Type,
+						Computed:    true,
+						Description: "The number of members in this user group.",
+					},
+					"default": {
+						Type:        types.BoolType,
+						Computed:    true,
+						Description: "Whether new members are added to this user group per default or not.",
+					},
+				}, tfsdk.ListNestedAttributesOptions{}),
 			},
 		},
 	}, nil
@@ -61,7 +61,7 @@ func (d dataSourceUserGroupsType) NewDataSource(_ context.Context, p tfsdk.Provi
 	}, nil
 }
 
-type dataSourceUserGroups struct{
+type dataSourceUserGroups struct {
 	p provider
 }
 
@@ -97,4 +97,3 @@ func (d dataSourceUserGroups) Read(ctx context.Context, req tfsdk.ReadDataSource
 
 	resp.Diagnostics.Append(diags...)
 }
-

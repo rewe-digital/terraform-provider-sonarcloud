@@ -13,16 +13,16 @@ type resourceUserGroupMemberType struct{}
 
 func (r resourceUserGroupMemberType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
-		Description: "This resource manages the members of a user group.",
+		Description: "This resource manages a single member of a user group.",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
-				Type: types.StringType,
+				Type:     types.StringType,
 				Computed: true,
 			},
 			"group": {
 				Type:        types.StringType,
 				Optional:    true,
-				Description: "Group name",
+				Description: "The name of the group to which the user should be added.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
@@ -30,7 +30,7 @@ func (r resourceUserGroupMemberType) GetSchema(_ context.Context) (tfsdk.Schema,
 			"login": {
 				Type:        types.StringType,
 				Required:    true,
-				Description: "User login",
+				Description: "The login of the user that should be added to the group.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
@@ -69,15 +69,15 @@ func (r resourceUserGroupMember) Create(ctx context.Context, req tfsdk.CreateRes
 
 	// Fill in api action struct
 	request := user_groups.AddUserRequest{
-		Login: plan.Login.Value,
-		Name:  plan.Group.Value,
+		Login:        plan.Login.Value,
+		Name:         plan.Group.Value,
 		Organization: r.p.organization,
 	}
 
 	err := r.p.client.UserGroups.AddUser(request)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Could not create the user_group membership",
+			"Could not create the user_group_member.",
 			fmt.Sprintf("The AddUser request returned an error: %+v", err),
 		)
 		return
@@ -108,7 +108,7 @@ func (r resourceUserGroupMember) Read(ctx context.Context, req tfsdk.ReadResourc
 	response, err := r.p.client.UserGroups.UsersAll(request)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Could not read the members of the user_group",
+			"Could not read the user_group_member.",
 			fmt.Sprintf("The UsersAll request returned an error: %+v", err),
 		)
 		return
@@ -146,7 +146,7 @@ func (r resourceUserGroupMember) Delete(ctx context.Context, req tfsdk.DeleteRes
 	err := r.p.client.UserGroups.RemoveUser(request)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Could not delete the member from the user_group",
+			"Could not delete the user_group_member.",
 			fmt.Sprintf("The RemoveUser request returned an error: %+v", err),
 		)
 		return
@@ -156,21 +156,5 @@ func (r resourceUserGroupMember) Delete(ctx context.Context, req tfsdk.DeleteRes
 }
 
 func (r resourceUserGroupMember) ImportState(ctx context.Context, _ tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-	tfsdk.ResourceImportStateNotImplemented(ctx, "User group member import is not supported", resp)
-}
-
-func findGroupMember(response *user_groups.UsersResponseAll, group string, login string) (GroupMember, bool) {
-	var result GroupMember
-	found := false
-	for _, u := range response.Users {
-		if u.Login == login {
-			result = GroupMember{
-				Group: types.String{Value: group},
-				Login: types.String{Value: login},
-			}
-			found = true
-			break
-		}
-	}
-	return result, found
+	tfsdk.ResourceImportStateNotImplemented(ctx, "Import is not supported for resource user_group_member.", resp)
 }

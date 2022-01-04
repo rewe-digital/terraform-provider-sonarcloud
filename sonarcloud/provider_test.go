@@ -10,7 +10,7 @@ import (
 var testAccProviderFactories map[string]func() (tfprotov6.ProviderServer, error)
 
 func init() {
-	testAccProviderFactories = map[string]func() (tfprotov6.ProviderServer, error) {
+	testAccProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 		"sonarcloud": func() (tfprotov6.ProviderServer, error) {
 			return tfsdk.NewProtocol6Server(New()), nil
 		},

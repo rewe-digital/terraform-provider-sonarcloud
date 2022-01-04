@@ -12,7 +12,7 @@ func TestAccUserGroup(t *testing.T) {
 	descriptions := []string{"A test group for the SonarCloud provider", "A Group"}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{

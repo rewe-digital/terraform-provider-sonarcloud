@@ -16,7 +16,7 @@ type Group struct {
 }
 
 type GroupMember struct {
-	ID	  types.String `tfsdk:"id"`
+	ID    types.String `tfsdk:"id"`
 	Group types.String `tfsdk:"group"`
 	Login types.String `tfsdk:"login"`
 }
@@ -33,7 +33,7 @@ type Users struct {
 }
 
 type Token struct {
-	ID	  types.String `tfsdk:"id"`
+	ID    types.String `tfsdk:"id"`
 	Login types.String `tfsdk:"login"`
 	Name  types.String `tfsdk:"name"`
 	Token types.String `tfsdk:"token"`

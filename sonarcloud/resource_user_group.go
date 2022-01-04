@@ -15,7 +15,7 @@ type resourceUserGroupType struct{}
 
 func (r resourceUserGroupType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
-		Description: "This resource manages user groups for the organization.",
+		Description: "This resource manages a user group.",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Type:     types.StringType,
@@ -24,17 +24,17 @@ func (r resourceUserGroupType) GetSchema(_ context.Context) (tfsdk.Schema, diag.
 			"name": {
 				Type:        types.StringType,
 				Required:    true,
-				Description: "Name of the user group",
+				Description: "The name of the user group.",
 			},
 			"description": {
 				Type:        types.StringType,
 				Optional:    true,
-				Description: "Description for the user group",
+				Description: "The description for the user group.",
 			},
 			"default": {
 				Type:        types.BoolType,
 				Computed:    true,
-				Description: "Whether the group is the default group.",
+				Description: "Whether the group is the default group or not.",
 			},
 			"members_count": {
 				Type:        types.NumberType,
@@ -223,24 +223,5 @@ func (r resourceUserGroup) Delete(ctx context.Context, req tfsdk.DeleteResourceR
 }
 
 func (r resourceUserGroup) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-	tfsdk.ResourceImportStatePassthroughID(ctx, tftypes.NewAttributePath().WithAttributeName("id"), req, resp)
-}
-
-func findGroup(response *user_groups.SearchResponseAll, name string) (Group, bool) {
-	var result Group
-	ok := false
-	for _, g := range response.Groups {
-		if g.Name == name {
-			result = Group{
-				ID:           types.String{Value: big.NewFloat(g.Id).String()},
-				Default:      types.Bool{Value: g.Default},
-				Description:  types.String{Value: g.Description},
-				MembersCount: types.Number{Value: big.NewFloat(g.MembersCount)},
-				Name:         types.String{Value: g.Name},
-			}
-			ok = true
-			break
-		}
-	}
-	return result, ok
+	tfsdk.ResourceImportStatePassthroughID(ctx, tftypes.NewAttributePath().WithAttributeName("name"), req, resp)
 }

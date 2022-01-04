@@ -14,8 +14,8 @@ func New() tfsdk.Provider {
 }
 
 type provider struct {
-	configured  bool
-	client *sonarcloud.Client
+	configured   bool
+	client       *sonarcloud.Client
 	organization string
 }
 
@@ -24,13 +24,13 @@ func (p *provider) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics)
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
 			"organization": {
-				Type:        types.StringType,
-				Optional:    true,
+				Type:     types.StringType,
+				Optional: true,
 			},
 			"token": {
-				Type:        types.StringType,
-				Optional:    true,
-				Sensitive:   true,
+				Type:      types.StringType,
+				Optional:  true,
+				Sensitive: true,
 			},
 		},
 	}, nil
@@ -81,9 +81,9 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 
 func (p *provider) GetResources(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
 	return map[string]tfsdk.ResourceType{
-		"sonarcloud_user_group":             resourceUserGroupType{},
-		"sonarcloud_user_group_member":      resourceUserGroupMemberType{},
-		"sonarcloud_user_token":             resourceUserTokenType{},
+		"sonarcloud_user_group":        resourceUserGroupType{},
+		"sonarcloud_user_group_member": resourceUserGroupMemberType{},
+		"sonarcloud_user_token":        resourceUserTokenType{},
 	}, nil
 }
 

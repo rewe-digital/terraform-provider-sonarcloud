@@ -22,7 +22,7 @@ func TestAccUserGroupMember(t *testing.T) {
 	group := os.Getenv("SONARCLOUD_TEST_GROUP_NAME")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t); testAccPreCheckUserGroupMember(t) },
+		PreCheck:                 func() { testAccPreCheck(t); testAccPreCheckUserGroupMember(t) },
 		ProtoV6ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
