@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/reinoudk/go-sonarcloud/sonarcloud/projects"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_groups"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_tokens"
 	"math/big"
@@ -34,7 +35,7 @@ func changedAttrs(req tfsdk.UpdateResourceRequest, diags diag.Diagnostics) map[s
 	return changes
 }
 
-// findGroup returns whether a group with the given name exists in the response
+// findGroup returns the group with the given name if it exists in the response
 func findGroup(response *user_groups.SearchResponseAll, name string) (Group, bool) {
 	var result Group
 	ok := false
@@ -54,21 +55,21 @@ func findGroup(response *user_groups.SearchResponseAll, name string) (Group, boo
 	return result, ok
 }
 
-// findGroup returns whether a group member with the given login exists in the response
+// findGroup returns the group member with the given login if it exists in the response
 func findGroupMember(response *user_groups.UsersResponseAll, group string, login string) (GroupMember, bool) {
 	var result GroupMember
-	found := false
+	ok := false
 	for _, u := range response.Users {
 		if u.Login == login {
 			result = GroupMember{
 				Group: types.String{Value: group},
 				Login: types.String{Value: login},
 			}
-			found = true
+			ok = true
 			break
 		}
 	}
-	return result, found
+	return result, ok
 }
 
 // tokenExists returns whether a token with the given name exists in the response
@@ -79,4 +80,23 @@ func tokenExists(response *user_tokens.SearchResponse, name string) bool {
 		}
 	}
 	return false
+}
+
+// findProject returns the project with the given key if it exists in the response
+func findProject(response *projects.SearchResponseAll, key string) (Project, bool) {
+	var result Project
+	ok := false
+	for _, p := range response.Components {
+		if p.Key == key {
+			result = Project{
+				ID:         types.String{Value: p.Key},
+				Name:       types.String{Value: p.Name},
+				Key:        types.String{Value: p.Key},
+				Visibility: types.String{Value: p.Visibility},
+			}
+			ok = true
+			break
+		}
+	}
+	return result, ok
 }

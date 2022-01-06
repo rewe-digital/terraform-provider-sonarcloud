@@ -3,7 +3,11 @@ repos:
     rev: v0.1.10
     hooks:
       - id: terraform-fmt
-      - id: terraform-validate
-      - id: tflint
-      - id: shellcheck
       - id: gofmt
+  - repo: local
+    hooks:
+      - id: update-docs
+        name: docs should be up-to-date
+        language: system
+        pass_filenames: false
+        entry: make docs-check

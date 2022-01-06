@@ -31,4 +31,7 @@ fmt:
 docs:
 	go generate ./...
 
+docs-check: docs
+	git diff --quiet
+
 .PHONY: docs
