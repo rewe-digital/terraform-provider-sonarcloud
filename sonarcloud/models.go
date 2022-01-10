@@ -39,6 +39,11 @@ type Token struct {
 	Token types.String `tfsdk:"token"`
 }
 
+type Projects struct {
+	ID       types.String `tfsdk:"id"`
+	Projects []Project    `tfsdk:"projects"`
+}
+
 type Project struct {
 	ID         types.String `tfsdk:"id"`
 	Name       types.String `tfsdk:"name"`
