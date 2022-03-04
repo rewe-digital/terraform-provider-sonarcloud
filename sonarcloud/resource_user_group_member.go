@@ -2,13 +2,13 @@ package sonarcloud
 
 import (
 	"context"
-    "strings"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_groups"
+	"strings"
 )
 
 type resourceUserGroupMemberType struct{}
@@ -95,28 +95,28 @@ func (r resourceUserGroupMember) Create(ctx context.Context, req tfsdk.CreateRes
 
 func (r resourceUserGroupMember) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
 	// Retrieve values from state
-    var state GroupMember
+	var state GroupMember
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-    
+
 	// Fill in api action struct
 	request := user_groups.UsersRequest{
-		Q: state.Login.Value,
-        Name: state.Group.Value,
+		Q:    state.Login.Value,
+		Name: state.Group.Value,
 	}
 
 	response, err := r.p.client.UserGroups.UsersAll(request)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Could not read the user_group_member.",
-            fmt.Sprintf("The UsersAll request returned an error: %+v", err),
+			fmt.Sprintf("The UsersAll request returned an error: %+v", err),
 		)
 		return
 	}
-    
+
 	// Check if the resource exists the list of retrieved resources
 	if result, ok := findGroupMember(response, state.Group.Value, state.Login.Value); ok {
 		diags = resp.State.Set(ctx, result)
@@ -159,15 +159,15 @@ func (r resourceUserGroupMember) Delete(ctx context.Context, req tfsdk.DeleteRes
 }
 
 func (r resourceUserGroupMember) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-    idParts := strings.Split(req.ID,",")
-    if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
-        resp.Diagnostics.AddError(
-            "Unexpected Import Identifier",
-            fmt.Sprintf("Expected import identifier with format: login,group. Got: %q", req.ID),
-        )
-        return
-    }
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: login,group. Got: %q", req.ID),
+		)
+		return
+	}
 
-    resp.Diagnostics.Append(resp.State.SetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("login"), idParts[0])...)
-    resp.Diagnostics.Append(resp.State.SetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("group"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("login"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, tftypes.NewAttributePath().WithAttributeName("group"), idParts[1])...)
 }
