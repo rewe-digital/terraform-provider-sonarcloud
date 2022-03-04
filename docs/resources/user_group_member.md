@@ -38,4 +38,11 @@ resource "sonarcloud_user_group_member" "example_member" {
 
 - **id** (String) The ID of this resource.
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+# import a group member by using <login>,<group>
+terraform import "sonarcloud_user_group_member.all["user@github"]" "user@github,Members"
+```
