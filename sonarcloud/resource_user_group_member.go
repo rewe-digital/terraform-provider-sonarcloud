@@ -112,7 +112,7 @@ func (r resourceUserGroupMember) Read(ctx context.Context, req tfsdk.ReadResourc
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Could not read the user_group_member.",
-			fmt.Sprintf("The UsersAll request returned an error: %+v \n\n %s", err, response),
+            fmt.Sprintf("The UsersAll request returned an error: %+v", err),
 		)
 		return
 	}
