@@ -131,3 +131,16 @@ type UserPermissions struct {
 	Permissions types.Set    `tfsdk:"permissions"`
 	Avatar      types.String `tfsdk:"avatar"`
 }
+
+type DataProjectLinks struct {
+	ID         types.String      `tfsdk:"id"`
+	ProjectKey types.String      `tfsdk:"project_key"`
+	Links      []DataProjectLink `tfsdk:"links"`
+}
+
+type DataProjectLink struct {
+	Id   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
+	Type types.String `tfsdk:"type"`
+	Url  types.String `tfsdk:"url"`
+}
