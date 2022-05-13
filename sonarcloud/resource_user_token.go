@@ -3,6 +3,7 @@ package sonarcloud
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -160,8 +161,4 @@ func (r resourceUserToken) Delete(ctx context.Context, req tfsdk.DeleteResourceR
 	}
 
 	resp.State.RemoveResource(ctx)
-}
-
-func (r resourceUserToken) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-	tfsdk.ResourceImportStateNotImplemented(ctx, "Import is not supported for resource user_token.", resp)
 }
