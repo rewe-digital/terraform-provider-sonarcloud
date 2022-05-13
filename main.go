@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"terraform-provider-sonarcloud/sonarcloud"
 )
 
@@ -11,7 +11,7 @@ import (
 //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 func main() {
-	tfsdk.Serve(context.Background(), sonarcloud.New, tfsdk.ServeOpts{
-		Name: "sonarcloud",
+	providerserver.Serve(context.Background(), sonarcloud.New, providerserver.ServeOpts{
+		Address: "sonarcloud",
 	})
 }
