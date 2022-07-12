@@ -43,7 +43,7 @@ func (d dataSourceProjectsType) GetSchema(_ context.Context) (tfsdk.Schema, diag
 						Computed:    true,
 						Description: "The visibility of the project.",
 					},
-				}, tfsdk.ListNestedAttributesOptions{}),
+				}),
 			},
 		},
 	}, nil
