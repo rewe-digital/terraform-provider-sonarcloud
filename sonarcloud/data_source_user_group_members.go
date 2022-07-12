@@ -38,7 +38,7 @@ func (d dataSourceUserGroupMembersType) GetSchema(_ context.Context) (tfsdk.Sche
 						Computed:    true,
 						Description: "The name of this user",
 					},
-				}, tfsdk.ListNestedAttributesOptions{}),
+				}),
 			},
 		},
 	}, nil

@@ -49,7 +49,7 @@ func (d dataSourceUserGroupsType) GetSchema(_ context.Context) (tfsdk.Schema, di
 						Computed:    true,
 						Description: "Whether new members are added to this user group per default or not.",
 					},
-				}, tfsdk.ListNestedAttributesOptions{}),
+				}),
 			},
 		},
 	}, nil
