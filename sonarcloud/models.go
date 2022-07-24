@@ -63,7 +63,7 @@ type Condition struct {
 	Error  types.Float64 `tfsdk:"error"`
 	ID     types.Float64 `tfsdk:"id"`
 	Metric types.String  `tfsdk:"metric"`
-	Op     types.String  `tfsdk:op`
+	Op     types.String  `tfsdk:"op"`
 }
 
 type Conditions struct {

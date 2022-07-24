@@ -1,14 +1,16 @@
 package sonarcloud
 
 import (
+	"math/big"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/projects"
+	"github.com/reinoudk/go-sonarcloud/sonarcloud/qualitygates"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_groups"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_tokens"
-	"math/big"
 )
 
 // changedAttrs returns a map where the keys are the names of all the attributes that were changed
@@ -94,6 +96,41 @@ func findProject(response *projects.SearchResponseAll, key string) (Project, boo
 				Key:        types.String{Value: p.Key},
 				Visibility: types.String{Value: p.Visibility},
 			}
+			ok = true
+			break
+		}
+	}
+	return result, ok
+}
+
+func findQualityGate(response *qualitygates.ListResponse, name string) (QualityGate, bool) {
+	var result QualityGate
+	ok := false
+	for _, q := range response.Qualitygates {
+		conditions := make([]Condition, len(q.Conditions))
+		if q.Name == name {
+			result = QualityGate{
+				ID:        types.Float64{Value: q.Id},
+				Name:      types.String{Value: q.Name},
+				IsBuiltIn: types.Bool{Value: q.IsBuiltIn},
+				IsDefault: types.Bool{Value: q.IsDefault},
+				Actions: Action{
+					Copy:             types.Bool{Value: q.Actions.Copy},
+					Delete:           types.Bool{Value: q.Actions.Delete},
+					ManageConditions: types.Bool{Value: q.Actions.ManageConditions},
+					Rename:           types.Bool{Value: q.Actions.Rename},
+					SetAsDefault:     types.Bool{Value: q.Actions.SetAsDefault},
+				},
+			}
+			for i, c := range q.Conditions {
+				conditions[i] = Condition{
+					Error:  types.Float64{Value: c.Error},
+					ID:     types.Float64{Value: c.Id},
+					Metric: types.String{Value: c.Metric},
+					Op:     types.String{Value: c.Op},
+				}
+			}
+			result.Conditions = conditions
 			ok = true
 			break
 		}
