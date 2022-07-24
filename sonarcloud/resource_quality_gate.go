@@ -301,11 +301,123 @@ func (r resourceQualityGate) Read(ctx context.Context, req tfsdk.ReadResourceReq
 }
 
 func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+	//retrieve values from state
+	var state QualityGate
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
+	// Retrieve values from plan
+	var plan QualityGate
+	diags = req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	changed := changedAttrs(req, diags)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if _, ok := changed["name"]; ok {
+		request := qualitygates.RenameRequest{
+			Id:           state.ID.String(),
+			Name:         plan.Name.Value,
+			Organization: r.p.organization,
+		}
+
+		err := r.p.client.Qualitygates.Rename(request)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Could not update Quality Gate Name.",
+				fmt.Sprintf("The Rename request returned an error: %+v", err),
+			)
+			return
+		}
+	}
+
+	if _, ok := changed["isDefault"]; ok {
+		if plan.IsDefault.Value {
+			request := qualitygates.SetAsDefaultRequest{
+				Id:           state.ID.String(),
+				Organization: r.p.organization,
+			}
+			err := r.p.client.Qualitygates.SetAsDefault(request)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Could not set Quality Gate as Default.",
+					fmt.Sprintf("The SetAsDefault request returned an error %+v", err),
+				)
+				return
+			}
+		}
+	}
+
+	if _, ok := changed["conditions"]; ok {
+		// delete all state conditions if there are none in the plan.
+		if len(plan.Conditions) < 0 {
+			for _, condition := range state.Conditions {
+				request := qualitygates.DeleteConditionRequest{
+					Id:           condition.ID.String(),
+					Organization: r.p.organization,
+				}
+				err := r.p.client.Qualitygates.DeleteCondition(request)
+				if err != nil {
+					resp.Diagnostics.AddError(
+						"Could not delete Quality Gate Condition.",
+						fmt.Sprintf("The DeleteCondition request returned an error %+v", err),
+					)
+					return
+				}
+			}
+		} else {
+			// TODO: Implement Condition Update for non-zero conditions
+		}
+	}
+	// There aren't any return values for non-create operations.
+	listRequest := qualitygates.ListRequest{}
+
+	response, err := r.p.client.Qualitygates.List(listRequest)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Could not read the Quality Gate",
+			fmt.Sprintf("The List request returned an error: %+v", err),
+		)
+		return
+	}
+
+	if result, ok := findQualityGate(response, plan.Name.Value); ok {
+		diags = resp.State.Set(ctx, result)
+		resp.Diagnostics.Append(diags...)
+	}
 }
 
 func (r resourceQualityGate) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
-	//TODO: Implement Delete
+	// Retrieve values from state
+	var state QualityGate
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	request := qualitygates.DestroyRequest{
+		Id:           state.ID.String(),
+		Organization: r.p.organization,
+	}
+
+	err := r.p.client.Qualitygates.Destroy(request)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Could not destroy the quality gate",
+			fmt.Sprintf("The Destroy request returned an error: %+v", err),
+		)
+		return
+	}
+	resp.State.RemoveResource(ctx)
 }
 
 func (r resourceQualityGate) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateRequest) {
