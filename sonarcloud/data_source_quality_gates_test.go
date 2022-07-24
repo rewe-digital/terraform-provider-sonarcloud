@@ -7,27 +7,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+// this is failing for some reason
 func TestAccDataSourceQualityGates(t *testing.T) {
-	defaultQualityGateName := "TEST_QUALITY_GATE"
+	numberOfDefaultQualityGates := "1"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccDataSourceQualityGatesConfig(),
+				Config: testAccDataSourceQualityGatesConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.sonarcloud_quality_gates.test_quality_gates", "name", defaultQualityGateName),
+					resource.TestCheckResourceAttr("data.sonarcloud_quality_gates.test_quality_gates", "quality_gates.#", numberOfDefaultQualityGates),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDataSourceQualityGatesConfig() string {
+func testAccDataSourceQualityGatesConfig() string {
 	return fmt.Sprintf(`
-data "sonarcloud_quality_gates "test_quality_gates" {
-	name = "TEST_QUALITY_GATE"
-}
+data "sonarcloud_quality_gates" "test_quality_gates" {}
 `)
 }

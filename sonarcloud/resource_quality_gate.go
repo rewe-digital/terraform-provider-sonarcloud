@@ -49,6 +49,17 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 				Validators:    []tfsdk.AttributeValidator{},
 				PlanModifiers: []tfsdk.AttributePlanModifier{},
 			},
+			"isDefault": {
+				Type:          types.BoolType,
+				Attributes:    nil,
+				Description:   "Defines whether the quality gate is the defualt gate for an organization",
+				Required:      false,
+				Optional:      true,
+				Computed:      false,
+				Sensitive:     false,
+				Validators:    []tfsdk.AttributeValidator{},
+				PlanModifiers: []tfsdk.AttributePlanModifier{},
+			},
 			"actions": {
 				Description:   "What actions can be performed on this Quality Gate.",
 				Required:      false,
@@ -225,7 +236,7 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 		ID:   types.Float64{Value: res.Id},
 		Name: types.String{Value: res.Name},
 	}
-	tempQualityGateId := types.Float64{Value: res.Id}
+	tempQualityGateId := res.Id
 
 	conditionRequests := qualitygates.CreateConditionRequest{}
 	for i, conditionPlan := range plan.Conditions {
@@ -290,7 +301,7 @@ func (r resourceQualityGate) Read(ctx context.Context, req tfsdk.ReadResourceReq
 }
 
 func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
-	//TODO: Implement Update
+
 }
 
 func (r resourceQualityGate) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {

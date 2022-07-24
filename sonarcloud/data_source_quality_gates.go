@@ -145,7 +145,6 @@ func (d dataSourceQualityGateType) GetSchema(__ context.Context) (tfsdk.Schema, 
 						}),
 					},
 					"conditions": {
-						Computed:    true,
 						Optional:    true,
 						Description: "The conditions of this quality gate.",
 						Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
