@@ -2,11 +2,12 @@ package sonarcloud
 
 import (
 	"context"
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud"
-	"os"
 )
 
 func New() tfsdk.Provider {
@@ -98,6 +99,7 @@ func (p *provider) GetDataSources(_ context.Context) (map[string]tfsdk.DataSourc
 		"sonarcloud_user_group":         dataSourceUserGroupType{},
 		"sonarcloud_user_groups":        dataSourceUserGroupsType{},
 		"sonarcloud_user_group_members": dataSourceUserGroupMembersType{},
+		"sonarcloud_quality_gates":      dataSourceQualityGateType{},
 	}, nil
 }
 

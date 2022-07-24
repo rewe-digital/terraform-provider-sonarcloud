@@ -50,3 +50,37 @@ type Project struct {
 	Key        types.String `tfsdk:"key"`
 	Visibility types.String `tfsdk:"visibility"`
 }
+
+type Action struct {
+	Copy             types.Bool `tfsdk:"copy"`
+	Delete           types.Bool `tfdsk:"delete"`
+	ManageConditions types.Bool `tfdsk:"manageConditions"`
+	Rename           types.Bool `tfdsk:"rename"`
+	SetAsDefault     types.Bool `tfdsk:"setAsDefault"`
+}
+
+type Condition struct {
+	Error  types.Float64 `tfsdk:"error"`
+	ID     types.Float64 `tfsdk:"id"`
+	Metric types.String  `tfsdk:"metric"`
+	Op     types.String  `tfsdk:op`
+}
+
+type Conditions struct {
+	ID         types.Float64 `tfsdk:"id"`
+	Conditions []Condition   `tfsdk:"condition"`
+}
+
+type QualityGate struct {
+	Actions    Action        `tfsdk:"actions"`
+	Conditions []Condition   `tfsdk:"conditions"`
+	ID         types.Float64 `tfsdk:"id"`
+	IsBuiltIn  types.Bool    `tfsdk:"isBuiltIn"`
+	IsDefault  types.Bool    `tfsdk:"isDefault"`
+	Name       types.String  `tfsdk:"name"`
+}
+
+type QualityGates struct {
+	ID           types.String  `tfsdk:"id"`
+	QualityGates []QualityGate `tfsdk:"qualityGate"`
+}
