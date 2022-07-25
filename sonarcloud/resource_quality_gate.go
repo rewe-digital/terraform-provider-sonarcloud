@@ -374,7 +374,85 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 				}
 			}
 		} else {
-			// TODO: Implement Condition Update for non-zero conditions
+			// This is long, maybe unnecessarily complex, and its effiency is questionable.
+			// I'm not to certain how to evaluate state vs. plan changes for nested attribute lists.
+			stateUpdate := Conditions{}
+			stateCreate := Conditions{}
+			stateDelete := state.Conditions
+			for _, planCond := range plan.Conditions {
+				notFound := true
+				for i := len(state.Conditions); i >= 0; i-- {
+					if planCond.Metric == state.Conditions[i].Metric {
+						notFound = false
+						stateDelete = append(stateDelete[:i], stateDelete[i+1:]...)
+						updatedCondition := Condition{
+							ID:     state.Conditions[i].ID,
+							Error:  planCond.Error,
+							Metric: planCond.Metric,
+							Op:     planCond.Op,
+						}
+						stateUpdate.Conditions = append(stateUpdate.Conditions, updatedCondition)
+					}
+				}
+				if notFound {
+					stateCreate.Conditions = append(stateCreate.Conditions, planCond)
+				}
+			}
+
+			if len(stateUpdate.Conditions) > 0 {
+				for _, updateCondition := range stateUpdate.Conditions {
+					request := qualitygates.UpdateConditionRequest{
+						Error:        updateCondition.Error.String(),
+						Id:           updateCondition.ID.String(),
+						Metric:       updateCondition.Metric.Value,
+						Op:           updateCondition.Op.Value,
+						Organization: r.p.organization,
+					}
+
+					err := r.p.client.Qualitygates.UpdateCondition(request)
+					if err != nil {
+						resp.Diagnostics.AddError(
+							"Could not update QualityGate condition",
+							fmt.Sprintf("The UpdateCondition request returned an error %+v", err),
+						)
+						return
+					}
+				}
+			}
+			if len(stateCreate.Conditions) > 0 {
+				for _, createCondition := range stateCreate.Conditions {
+					request := qualitygates.CreateConditionRequest{
+						Error:        createCondition.Error.String(),
+						Metric:       createCondition.Metric.Value,
+						Op:           createCondition.Op.Value,
+						Organization: r.p.organization,
+					}
+					_, err := r.p.client.Qualitygates.CreateCondition(request)
+					if err != nil {
+						resp.Diagnostics.AddError(
+							"Could not create QualityGate condition",
+							fmt.Sprintf("The CreateCondition request returned an error %+v", err),
+						)
+						return
+					}
+				}
+			}
+			if len(stateDelete) > 0 {
+				for _, deleteCondition := range stateDelete {
+					request := qualitygates.DeleteConditionRequest{
+						Id:           deleteCondition.ID.String(),
+						Organization: r.p.organization,
+					}
+					err := r.p.client.Qualitygates.DeleteCondition(request)
+					if err != nil {
+						resp.Diagnostics.AddError(
+							"Could not delete QualityGate condition",
+							fmt.Sprintf("The DeleteCondition request returned an error %+v", err),
+						)
+						return
+					}
+				}
+			}
 		}
 	}
 	// There aren't any return values for non-create operations.
