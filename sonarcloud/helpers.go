@@ -103,6 +103,7 @@ func findProject(response *projects.SearchResponseAll, key string) (Project, boo
 	return result, ok
 }
 
+// findQualityGate returns the quality gate with the given name if it exists in a response
 func findQualityGate(response *qualitygates.ListResponse, name string) (QualityGate, bool) {
 	var result QualityGate
 	ok := false
@@ -124,7 +125,7 @@ func findQualityGate(response *qualitygates.ListResponse, name string) (QualityG
 			}
 			for i, c := range q.Conditions {
 				conditions[i] = Condition{
-					Error:  types.Float64{Value: c.Error},
+					Error:  types.Float64{Value: c.Error}, // TODO: Change to StringType once go-sonarcloud error has been fixed
 					ID:     types.Float64{Value: c.Id},
 					Metric: types.String{Value: c.Metric},
 					Op:     types.String{Value: c.Op},

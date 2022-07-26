@@ -60,7 +60,7 @@ type Action struct {
 }
 
 type Condition struct {
-	Error  types.Float64 `tfsdk:"error"`
+	Error  types.Float64 `tfsdk:"error"` // TODO: Change to StringType once go-sonarcloud error has been fixed
 	ID     types.Float64 `tfsdk:"id"`
 	Metric types.String  `tfsdk:"metric"`
 	Op     types.String  `tfsdk:"op"`
