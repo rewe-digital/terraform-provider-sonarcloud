@@ -92,7 +92,6 @@ func (d dataSourceQualityGateType) GetSchema(__ context.Context) (tfsdk.Schema, 
 							},
 							"metric": {
 								Type:        types.StringType,
-								Attributes:  nil,
 								Description: "The metric on which the condition is based. Must be one of: https://docs.sonarqube.org/latest/user-guide/metric-definitions/",
 								Computed:    true,
 								Validators: []tfsdk.AttributeValidator{
