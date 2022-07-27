@@ -117,6 +117,9 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 						Validators: []tfsdk.AttributeValidator{
 							allowedOptions("security_rating", "ncloc_language_distribution", "test_execution_time", "statements", "lines_to_cover", "quality_gate_details", "new_reliabillity_remediation_effort", "tests", "security_review_rating", "new_xxx_violations", "conditions_by_line", "new_violations", "ncloc", "duplicated_lines", "test_failures", "test_errors", "reopened_issues", "new_vulnerabilities", "duplicated_lines_density", "test_success_density", "sqale_debt_ratio", "security_hotspots_reviewed", "security_remediation_effort", "covered_conditions_by_line", "classes", "sqale_rating", "xxx_violations", "true_positive_issues", "violations", "new_security_review_rating", "new_security_remediation_effort", "vulnerabillities", "new_uncovered_conditions", "files", "branch_coverage_hits_data", "uncovered_lines", "comment_lines_density", "new_uncovered_lines", "complexty", "cognitive_complexity", "uncovered_conditions", "functions", "new_technical_debt", "new_coverage", "coverage", "new_branch_coverage", "confirmed_issues", "reliabillity_remediation_effort", "projects", "coverage_line_hits_data", "code_smells", "directories", "lines", "bugs", "line_coverage", "new_line_coverage", "reliability_rating", "duplicated_blocks", "branch_coverage", "new_code_smells", "new_sqale_debt_ratio", "open_issues", "sqale_index", "new_lines_to_cover", "comment_lines", "skipped_tests"),
 						},
+						PlanModifiers: tfsdk.AttributePlanModifiers{
+							tfsdk.UseStateForUnknown(),
+						},
 					},
 					"op": {
 						Type:        types.StringType,
@@ -218,10 +221,30 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 		}
 	}
 
-	resp.Diagnostics.AddWarning(
-		"full creation:",
-		fmt.Sprintf("%+v", result),
-	)
+	// Actions are not returned with create request, so we need to query for them
+	listRequest := qualitygates.ListRequest{Organization: r.p.organization}
+
+	listRes, err := r.p.client.Qualitygates.List(listRequest)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Could not read the Quality Gate",
+			fmt.Sprintf("The List request returned an error: %+v", err),
+		)
+		return
+	}
+
+	if createdQualityGate, ok := findQualityGate(listRes, result.Name.Value); ok {
+		result.IsBuiltIn = createdQualityGate.IsBuiltIn
+		result.IsDefault = createdQualityGate.IsDefault
+		result.Actions = Action{
+			Delete:            createdQualityGate.Actions.Delete,
+			Copy:              createdQualityGate.Actions.Copy,
+			AssociateProjects: createdQualityGate.Actions.AssociateProjects,
+			ManageConditions:  createdQualityGate.Actions.ManageConditions,
+			Rename:            createdQualityGate.Actions.Rename,
+			SetAsDefault:      createdQualityGate.Actions.SetAsDefault,
+		}
+	}
 
 	diags = resp.State.Set(ctx, result)
 	resp.Diagnostics.Append(diags...)
@@ -415,7 +438,7 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 		}
 	}
 	// There aren't any return values for non-create operations.
-	listRequest := qualitygates.ListRequest{}
+	listRequest := qualitygates.ListRequest{Organization: r.p.organization}
 
 	response, err := r.p.client.Qualitygates.List(listRequest)
 	if err != nil {
