@@ -107,7 +107,7 @@ func (d dataSourceQualityGateType) GetSchema(__ context.Context) (tfsdk.Schema, 
 								},
 							},
 							"error": {
-								Type:        types.Float64Type, // TODO: Change to StringType once go-sonarcloud error has been fixed
+								Type:        types.StringType,
 								Description: "The value on which the condition errors.",
 								Computed:    true,
 							},
@@ -145,30 +145,31 @@ func (d dataSourceQualityGate) Read(ctx context.Context, req tfsdk.ReadDataSourc
 
 	result := QualityGates{}
 	allQualityGates := make([]QualityGate, len(response.Qualitygates))
-	for i, qualityGate := range response.Qualitygates {
+	for _, qualityGate := range response.Qualitygates {
 		allConditions := make([]Condition, len(qualityGate.Conditions))
-		for j, condition := range qualityGate.Conditions {
-			allConditions[j] = Condition{
-				Error:  types.Float64{Value: condition.Error}, // TODO: Change to StringType once go-sonarcloud error has been fixed
+		for _, condition := range qualityGate.Conditions {
+			allConditions = append(allConditions, Condition{
+				Error:  types.String{Value: condition.Error},
 				ID:     types.Float64{Value: condition.Id},
 				Metric: types.String{Value: condition.Metric},
 				Op:     types.String{Value: condition.Op},
-			}
+			})
 		}
-		allQualityGates[i] = QualityGate{
+		allQualityGates = append(allQualityGates, QualityGate{
 			ID:        types.Float64{Value: qualityGate.Id},
 			IsBuiltIn: types.Bool{Value: qualityGate.IsBuiltIn},
 			IsDefault: types.Bool{Value: qualityGate.IsDefault},
 			Name:      types.String{Value: qualityGate.Name},
-		}
-		allQualityGates[i].Actions = Action{
-			Copy:             types.Bool{Value: qualityGate.Actions.Copy},
-			Delete:           types.Bool{Value: qualityGate.Actions.Delete},
-			ManageConditions: types.Bool{Value: qualityGate.Actions.ManageConditions},
-			Rename:           types.Bool{Value: qualityGate.Actions.Rename},
-			SetAsDefault:     types.Bool{Value: qualityGate.Actions.SetAsDefault},
-		}
-		allQualityGates[i].Conditions = allConditions
+			Actions: Action{
+				Copy:              types.Bool{Value: qualityGate.Actions.Copy},
+				Delete:            types.Bool{Value: qualityGate.Actions.Delete},
+				ManageConditions:  types.Bool{Value: qualityGate.Actions.ManageConditions},
+				Rename:            types.Bool{Value: qualityGate.Actions.Rename},
+				SetAsDefault:      types.Bool{Value: qualityGate.Actions.SetAsDefault},
+				AssociateProjects: types.Bool{Value: qualityGate.Actions.AssociateProjects},
+			},
+			Conditions: allConditions,
+		})
 	}
 	result.QualityGates = allQualityGates
 	result.ID = types.String{Value: d.p.organization}

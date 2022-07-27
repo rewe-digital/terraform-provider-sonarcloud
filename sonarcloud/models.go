@@ -52,15 +52,16 @@ type Project struct {
 }
 
 type Action struct {
-	Copy             types.Bool `tfsdk:"copy"`
-	Delete           types.Bool `tfdsk:"delete"`
-	ManageConditions types.Bool `tfdsk:"manageConditions"`
-	Rename           types.Bool `tfdsk:"rename"`
-	SetAsDefault     types.Bool `tfdsk:"setAsDefault"`
+	Copy              types.Bool `tfsdk:"copy"`
+	Delete            types.Bool `tfsdk:"delete"`
+	ManageConditions  types.Bool `tfsdk:"manage_conditions"`
+	Rename            types.Bool `tfsdk:"rename"`
+	SetAsDefault      types.Bool `tfsdk:"set_as_default"`
+	AssociateProjects types.Bool `tfsdk:"associate_projects"`
 }
 
 type Condition struct {
-	Error  types.Float64 `tfsdk:"error"` // TODO: Change to StringType once go-sonarcloud error has been fixed
+	Error  types.String  `tfsdk:"error"`
 	ID     types.Float64 `tfsdk:"id"`
 	Metric types.String  `tfsdk:"metric"`
 	Op     types.String  `tfsdk:"op"`
@@ -75,12 +76,12 @@ type QualityGate struct {
 	Actions    Action        `tfsdk:"actions"`
 	Conditions []Condition   `tfsdk:"conditions"`
 	ID         types.Float64 `tfsdk:"id"`
-	IsBuiltIn  types.Bool    `tfsdk:"isBuiltIn"`
-	IsDefault  types.Bool    `tfsdk:"isDefault"`
+	IsBuiltIn  types.Bool    `tfsdk:"is_built_in"`
+	IsDefault  types.Bool    `tfsdk:"is_default"`
 	Name       types.String  `tfsdk:"name"`
 }
 
 type QualityGates struct {
 	ID           types.String  `tfsdk:"id"`
-	QualityGates []QualityGate `tfsdk:"qualityGate"`
+	QualityGates []QualityGate `tfsdk:"quality_gates"`
 }

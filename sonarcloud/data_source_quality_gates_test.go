@@ -7,9 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// this is failing for some reason
 func TestAccDataSourceQualityGates(t *testing.T) {
-	numberOfDefaultQualityGates := "1"
+	numberOfDefaultQualityGates := "2" //Extra gate is the 'Sonar Way' default quality gate.
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },

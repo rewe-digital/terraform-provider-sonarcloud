@@ -21,6 +21,9 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 				Type:        types.Float64Type,
 				Description: "Id computed by SonarCloud servers",
 				Computed:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.UseStateForUnknown(),
+				},
 			},
 			"name": {
 				Type:        types.StringType,
@@ -31,6 +34,9 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 				Type:        types.BoolType,
 				Description: "Defines whether the quality gate is built in. ",
 				Computed:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.UseStateForUnknown(),
+				},
 			},
 			"is_default": {
 				Type:        types.BoolType,
@@ -45,42 +51,64 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 						Type:        types.BoolType,
 						Description: "Whether this object can be renamed",
 						Computed:    true,
+						PlanModifiers: tfsdk.AttributePlanModifiers{
+							tfsdk.UseStateForUnknown(),
+						},
 					},
 					"set_as_default": {
 						Type:        types.BoolType,
 						Description: "Whether this object can be set as Default",
 						Computed:    true,
+						PlanModifiers: tfsdk.AttributePlanModifiers{
+							tfsdk.UseStateForUnknown(),
+						},
 					},
 					"copy": {
 						Type:        types.BoolType,
 						Description: "Whether this object can be copied",
 						Computed:    true,
+						PlanModifiers: tfsdk.AttributePlanModifiers{
+							tfsdk.UseStateForUnknown(),
+						},
 					},
 					"associate_projects": {
 						Type:        types.BoolType,
 						Description: "Whether this object can be associated with Projects",
 						Computed:    true,
+						PlanModifiers: tfsdk.AttributePlanModifiers{
+							tfsdk.UseStateForUnknown(),
+						},
 					},
 					"delete": {
 						Type:        types.BoolType,
 						Description: "Whether this object can be deleted",
 						Computed:    true,
+						PlanModifiers: tfsdk.AttributePlanModifiers{
+							tfsdk.UseStateForUnknown(),
+						},
 					},
 					"manage_conditions": {
 						Type:        types.BoolType,
 						Description: "Whether this object can be managed",
 						Computed:    true,
+						PlanModifiers: tfsdk.AttributePlanModifiers{
+							tfsdk.UseStateForUnknown(),
+						},
 					},
 				}),
 			},
 			"conditions": {
 				Optional:    true,
 				Description: "The conditions of this quality gate.",
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+
+				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
 					"id": {
 						Type:        types.Float64Type,
 						Description: "Index/ID of the Condition.",
 						Computed:    true,
+						PlanModifiers: tfsdk.AttributePlanModifiers{
+							tfsdk.UseStateForUnknown(),
+						},
 					},
 					"metric": {
 						Type:        types.StringType,
@@ -97,11 +125,17 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 						Validators: []tfsdk.AttributeValidator{
 							allowedOptions("LT", "GT"),
 						},
+						PlanModifiers: tfsdk.AttributePlanModifiers{
+							tfsdk.UseStateForUnknown(),
+						},
 					},
 					"error": {
-						Type:        types.Float64Type, // TODO: Change to StringType once go-sonarcloud error has been fixed
+						Type:        types.StringType,
 						Description: "The value on which the condition errors.",
 						Required:    true,
+						PlanModifiers: tfsdk.AttributePlanModifiers{
+							tfsdk.UseStateForUnknown(),
+						},
 					},
 				}),
 			},
@@ -161,7 +195,7 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 	conditionRequests := qualitygates.CreateConditionRequest{}
 	for i, conditionPlan := range plan.Conditions {
 		conditionRequests = qualitygates.CreateConditionRequest{
-			Error:        fmt.Sprintf("%f", conditionPlan.Error.Value),
+			Error:        conditionPlan.Error.Value,
 			GateId:       fmt.Sprintf("%f", tempQualityGateId),
 			Metric:       conditionPlan.Metric.Value,
 			Op:           conditionPlan.Op.Value,
@@ -177,12 +211,17 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 		}
 		// didn't implement warning
 		result.Conditions[i] = Condition{
-			Error:  types.Float64{Value: res.Error},
+			Error:  types.String{Value: res.Error},
 			ID:     types.Float64{Value: res.Id},
 			Metric: types.String{Value: res.Metric},
 			Op:     types.String{Value: res.Op},
 		}
 	}
+
+	resp.Diagnostics.AddWarning(
+		"full creation:",
+		fmt.Sprintf("%+v", result),
+	)
 
 	diags = resp.State.Set(ctx, result)
 	resp.Diagnostics.Append(diags...)
@@ -322,7 +361,7 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 			if len(stateUpdate.Conditions) > 0 {
 				for _, updateCondition := range stateUpdate.Conditions {
 					request := qualitygates.UpdateConditionRequest{
-						Error:        updateCondition.Error.String(), // TODO: Change when go-sonarcloud error has been fixed
+						Error:        updateCondition.Error.Value,
 						Id:           updateCondition.ID.String(),
 						Metric:       updateCondition.Metric.Value,
 						Op:           updateCondition.Op.Value,
@@ -342,7 +381,7 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 			if len(stateCreate.Conditions) > 0 {
 				for _, createCondition := range stateCreate.Conditions {
 					request := qualitygates.CreateConditionRequest{
-						Error:        createCondition.Error.String(), // TODO: Change when go-sonarcloud error has been fixed
+						Error:        createCondition.Error.Value,
 						Metric:       createCondition.Metric.Value,
 						Op:           createCondition.Op.Value,
 						Organization: r.p.organization,

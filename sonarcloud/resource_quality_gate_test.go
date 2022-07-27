@@ -10,8 +10,8 @@ import (
 
 func TestAccResourceQualityGate(t *testing.T) {
 	names := []string{"quality_gate_a", "quality_gate_b"}
-	metrics := []string{"security_rating, ", "ncloc_language_distribution"}
-	testError := []float64{10, 11}
+	metrics := []string{"security_rating", "ncloc_language_distribution"}
+	testError := []string{"10", "11"}
 	Op := []string{"LT", "GT"}
 
 	// TODO: use fixed test organization so that changes can be verified.
@@ -25,7 +25,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[0])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
 				),
 			},
@@ -34,7 +34,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[0])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
 				),
 			},
@@ -43,7 +43,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[0])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
 				),
 			},
@@ -52,7 +52,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[1])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
 				),
 			},
@@ -61,7 +61,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[1])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[1]),
 				),
 			},
@@ -70,7 +70,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[1])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[1]),
 				),
 			},
@@ -79,7 +79,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[1])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[1]),
 				),
 			},
@@ -88,7 +88,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[0])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[1]),
 				),
 			},
@@ -97,7 +97,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[0])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[1]),
 				),
 			},
@@ -106,7 +106,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[0])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
 				),
 			},
@@ -115,7 +115,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[1])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
 				),
 			},
@@ -124,7 +124,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", fmt.Sprintf("%f", testError[1])),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
 				),
 			},
@@ -137,14 +137,14 @@ func testAccQualityGateDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccQualityGateConfig(name string, metric string, err float64, op string) string {
+func testAccQualityGateConfig(name, metric, err, op string) string {
 	return fmt.Sprintf(`
 resource "sonarcloud_quality_gate" "test" {
 	name = "%s"
-	condition [
+	conditions = [
 		{
 			metric = "%s"
-			err = "%f"
+			error = "%s"
 			op = "%s"
 		}
 	]

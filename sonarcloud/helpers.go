@@ -125,7 +125,7 @@ func findQualityGate(response *qualitygates.ListResponse, name string) (QualityG
 			}
 			for i, c := range q.Conditions {
 				conditions[i] = Condition{
-					Error:  types.Float64{Value: c.Error}, // TODO: Change to StringType once go-sonarcloud error has been fixed
+					Error:  types.String{Value: c.Error}, // TODO: Change to StringType once go-sonarcloud error has been fixed
 					ID:     types.Float64{Value: c.Id},
 					Metric: types.String{Value: c.Metric},
 					Op:     types.String{Value: c.Op},
