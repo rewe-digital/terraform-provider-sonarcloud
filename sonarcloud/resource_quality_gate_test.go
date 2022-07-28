@@ -10,7 +10,7 @@ import (
 
 func TestAccResourceQualityGate(t *testing.T) {
 	names := []string{"quality_gate_a", "quality_gate_b"}
-	metrics := []string{"security_rating", "ncloc_language_distribution"}
+	metrics := []string{"coverage", "duplicated_lines_density"}
 	testError := []string{"10", "11"}
 	Op := []string{"LT", "GT"}
 
@@ -24,108 +24,18 @@ func TestAccResourceQualityGate(t *testing.T) {
 				Config: testAccQualityGateConfig(names[0], metrics[0], testError[0], Op[0]),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
-				),
-			},
-			{
-				Config: testAccQualityGateConfig(names[1], metrics[0], testError[0], Op[0]),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
-				),
-			},
-			{
-				Config: testAccQualityGateConfig(names[1], metrics[1], testError[0], Op[0]),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
-				),
-			},
-			{
-				Config: testAccQualityGateConfig(names[1], metrics[1], testError[1], Op[0]),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.metric", metrics[0]),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.error", testError[0]),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.op", Op[0]),
 				),
 			},
 			{
 				Config: testAccQualityGateConfig(names[1], metrics[1], testError[1], Op[1]),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[1]),
-				),
-			},
-			{
-				Config: testAccQualityGateConfig(names[0], metrics[1], testError[1], Op[1]),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[1]),
-				),
-			},
-			{
-				Config: testAccQualityGateConfig(names[0], metrics[0], testError[1], Op[1]),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[1]),
-				),
-			},
-			{
-				Config: testAccQualityGateConfig(names[0], metrics[0], testError[0], Op[1]),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[1]),
-				),
-			},
-			{
-				Config: testAccQualityGateConfig(names[0], metrics[1], testError[0], Op[1]),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[1]),
-				),
-			},
-			{
-				Config: testAccQualityGateConfig(names[0], metrics[1], testError[0], Op[0]),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
-				),
-			},
-			{
-				Config: testAccQualityGateConfig(names[0], metrics[0], testError[1], Op[0]),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
-				),
-			},
-			{
-				Config: testAccQualityGateConfig(names[1], metrics[0], testError[1], Op[0]),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "metric", metrics[0]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Error", testError[1]),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test.Conditions[0]", "Op", Op[0]),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.metric", metrics[1]),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.error", testError[1]),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.op", Op[1]),
 				),
 			},
 		},

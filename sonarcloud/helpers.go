@@ -108,30 +108,28 @@ func findQualityGate(response *qualitygates.ListResponse, name string) (QualityG
 	var result QualityGate
 	ok := false
 	for _, q := range response.Qualitygates {
-		conditions := make([]Condition, len(q.Conditions))
 		if q.Name == name {
 			result = QualityGate{
 				ID:        types.Float64{Value: q.Id},
 				Name:      types.String{Value: q.Name},
 				IsBuiltIn: types.Bool{Value: q.IsBuiltIn},
 				IsDefault: types.Bool{Value: q.IsDefault},
-				Actions: Action{
-					Copy:             types.Bool{Value: q.Actions.Copy},
-					Delete:           types.Bool{Value: q.Actions.Delete},
-					ManageConditions: types.Bool{Value: q.Actions.ManageConditions},
-					Rename:           types.Bool{Value: q.Actions.Rename},
-					SetAsDefault:     types.Bool{Value: q.Actions.SetAsDefault},
-				},
+				// Actions: Action{
+				// 	Copy:             types.Bool{Value: q.Actions.Copy},
+				// 	Delete:           types.Bool{Value: q.Actions.Delete},
+				// 	ManageConditions: types.Bool{Value: q.Actions.ManageConditions},
+				// 	Rename:           types.Bool{Value: q.Actions.Rename},
+				// 	SetAsDefault:     types.Bool{Value: q.Actions.SetAsDefault},
+				// },
 			}
-			for i, c := range q.Conditions {
-				conditions[i] = Condition{
-					Error:  types.String{Value: c.Error}, // TODO: Change to StringType once go-sonarcloud error has been fixed
+			for _, c := range q.Conditions {
+				result.Conditions = append(result.Conditions, Condition{
+					Error:  types.String{Value: c.Error},
 					ID:     types.Float64{Value: c.Id},
 					Metric: types.String{Value: c.Metric},
 					Op:     types.String{Value: c.Op},
-				}
+				})
 			}
-			result.Conditions = conditions
 			ok = true
 			break
 		}

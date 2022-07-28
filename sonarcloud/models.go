@@ -51,14 +51,14 @@ type Project struct {
 	Visibility types.String `tfsdk:"visibility"`
 }
 
-type Action struct {
-	Copy              types.Bool `tfsdk:"copy"`
-	Delete            types.Bool `tfsdk:"delete"`
-	ManageConditions  types.Bool `tfsdk:"manage_conditions"`
-	Rename            types.Bool `tfsdk:"rename"`
-	SetAsDefault      types.Bool `tfsdk:"set_as_default"`
-	AssociateProjects types.Bool `tfsdk:"associate_projects"`
-}
+// type Action struct {
+// 	Copy              types.Bool `tfsdk:"copy"`
+// 	Delete            types.Bool `tfsdk:"delete"`
+// 	ManageConditions  types.Bool `tfsdk:"manage_conditions"`
+// 	Rename            types.Bool `tfsdk:"rename"`
+// 	SetAsDefault      types.Bool `tfsdk:"set_as_default"`
+// 	AssociateProjects types.Bool `tfsdk:"associate_projects"`
+// }
 
 type Condition struct {
 	Error  types.String  `tfsdk:"error"`
@@ -73,7 +73,7 @@ type Conditions struct {
 }
 
 type QualityGate struct {
-	Actions    Action        `tfsdk:"actions"`
+	// Actions    Action        `tfsdk:"actions"`
 	Conditions []Condition   `tfsdk:"conditions"`
 	ID         types.Float64 `tfsdk:"id"`
 	IsBuiltIn  types.Bool    `tfsdk:"is_built_in"`

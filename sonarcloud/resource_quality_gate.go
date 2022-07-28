@@ -32,7 +32,7 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 			},
 			"is_built_in": {
 				Type:        types.BoolType,
-				Description: "Defines whether the quality gate is built in. ",
+				Description: "Defines whether the quality gate is built in.",
 				Computed:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.UseStateForUnknown(),
@@ -40,67 +40,50 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 			},
 			"is_default": {
 				Type:        types.BoolType,
-				Description: "Defines whether the quality gate is the defualt gate for an organization",
+				Description: "Defines whether the quality gate is the defualt gate for an organization. **WARNING**: Must be assigned to one quality gate per organization at all times",
 				Optional:    true,
-			},
-			"actions": {
-				Description: "What actions can be performed on this Quality Gate.",
 				Computed:    true,
-				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					"rename": {
-						Type:        types.BoolType,
-						Description: "Whether this object can be renamed",
-						Computed:    true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							tfsdk.UseStateForUnknown(),
-						},
-					},
-					"set_as_default": {
-						Type:        types.BoolType,
-						Description: "Whether this object can be set as Default",
-						Computed:    true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							tfsdk.UseStateForUnknown(),
-						},
-					},
-					"copy": {
-						Type:        types.BoolType,
-						Description: "Whether this object can be copied",
-						Computed:    true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							tfsdk.UseStateForUnknown(),
-						},
-					},
-					"associate_projects": {
-						Type:        types.BoolType,
-						Description: "Whether this object can be associated with Projects",
-						Computed:    true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							tfsdk.UseStateForUnknown(),
-						},
-					},
-					"delete": {
-						Type:        types.BoolType,
-						Description: "Whether this object can be deleted",
-						Computed:    true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							tfsdk.UseStateForUnknown(),
-						},
-					},
-					"manage_conditions": {
-						Type:        types.BoolType,
-						Description: "Whether this object can be managed",
-						Computed:    true,
-						PlanModifiers: tfsdk.AttributePlanModifiers{
-							tfsdk.UseStateForUnknown(),
-						},
-					},
-				}),
 			},
+			// "actions": {
+			// 	Description:   "What actions can be performed on this Quality Gate.",
+			// 	Computed:      true,
+			// 	PlanModifiers: tfsdk.AttributePlanModifiers{},
+			// 	Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+			// 		"rename": {
+			// 			Type:        types.BoolType,
+			// 			Description: "Whether this object can be renamed",
+			// 			Computed:    true,
+			// 		},
+			// 		"set_as_default": {
+			// 			Type:        types.BoolType,
+			// 			Description: "Whether this object can be set as Default",
+			// 			Computed:    true,
+			// 		},
+			// 		"copy": {
+			// 			Type:        types.BoolType,
+			// 			Description: "Whether this object can be copied",
+			// 			Computed:    true,
+			// 		},
+			// 		"associate_projects": {
+			// 			Type:        types.BoolType,
+			// 			Description: "Whether this object can be associated with Projects",
+			// 			Computed:    true,
+			// 		},
+			// 		"delete": {
+			// 			Type:        types.BoolType,
+			// 			Description: "Whether this object can be deleted",
+			// 			Computed:    true,
+			// 		},
+			// 		"manage_conditions": {
+			// 			Type:        types.BoolType,
+			// 			Description: "Whether this object can be managed",
+			// 			Computed:    true,
+			// 		},
+			// 	}),
+			// },
 			"conditions": {
 				Optional:    true,
 				Description: "The conditions of this quality gate.",
-
 				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
 					"id": {
 						Type:        types.Float64Type,
@@ -193,13 +176,13 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 		ID:   types.Float64{Value: res.Id},
 		Name: types.String{Value: res.Name},
 	}
-	tempQualityGateId := res.Id
+	tempQualityGateId := int(res.Id)
 
 	conditionRequests := qualitygates.CreateConditionRequest{}
-	for i, conditionPlan := range plan.Conditions {
+	for _, conditionPlan := range plan.Conditions {
 		conditionRequests = qualitygates.CreateConditionRequest{
 			Error:        conditionPlan.Error.Value,
-			GateId:       fmt.Sprintf("%f", tempQualityGateId),
+			GateId:       fmt.Sprintf("%d", tempQualityGateId),
 			Metric:       conditionPlan.Metric.Value,
 			Op:           conditionPlan.Op.Value,
 			Organization: r.p.organization,
@@ -213,16 +196,18 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 			return
 		}
 		// didn't implement warning
-		result.Conditions[i] = Condition{
+		result.Conditions = append(result.Conditions, Condition{
 			Error:  types.String{Value: res.Error},
 			ID:     types.Float64{Value: res.Id},
 			Metric: types.String{Value: res.Metric},
 			Op:     types.String{Value: res.Op},
-		}
+		})
 	}
 
 	// Actions are not returned with create request, so we need to query for them
-	listRequest := qualitygates.ListRequest{Organization: r.p.organization}
+	listRequest := qualitygates.ListRequest{
+		Organization: r.p.organization,
+	}
 
 	listRes, err := r.p.client.Qualitygates.List(listRequest)
 	if err != nil {
@@ -236,14 +221,14 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 	if createdQualityGate, ok := findQualityGate(listRes, result.Name.Value); ok {
 		result.IsBuiltIn = createdQualityGate.IsBuiltIn
 		result.IsDefault = createdQualityGate.IsDefault
-		result.Actions = Action{
-			Delete:            createdQualityGate.Actions.Delete,
-			Copy:              createdQualityGate.Actions.Copy,
-			AssociateProjects: createdQualityGate.Actions.AssociateProjects,
-			ManageConditions:  createdQualityGate.Actions.ManageConditions,
-			Rename:            createdQualityGate.Actions.Rename,
-			SetAsDefault:      createdQualityGate.Actions.SetAsDefault,
-		}
+		// result.Actions = Action{
+		// 	Delete:            createdQualityGate.Actions.Delete,
+		// 	Copy:              createdQualityGate.Actions.Copy,
+		// 	AssociateProjects: createdQualityGate.Actions.AssociateProjects,
+		// 	ManageConditions:  createdQualityGate.Actions.ManageConditions,
+		// 	Rename:            createdQualityGate.Actions.Rename,
+		// 	SetAsDefault:      createdQualityGate.Actions.SetAsDefault,
+		// }
 	}
 
 	diags = resp.State.Set(ctx, result)
@@ -363,7 +348,7 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 			stateDelete := state.Conditions
 			for _, planCond := range plan.Conditions {
 				notFound := true
-				for i := len(state.Conditions); i >= 0; i-- {
+				for i := len(state.Conditions) - 1; i >= 0; i-- {
 					if planCond.Metric == state.Conditions[i].Metric {
 						notFound = false
 						stateDelete = append(stateDelete[:i], stateDelete[i+1:]...)
@@ -438,7 +423,9 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 		}
 	}
 	// There aren't any return values for non-create operations.
-	listRequest := qualitygates.ListRequest{Organization: r.p.organization}
+	listRequest := qualitygates.ListRequest{
+		Organization: r.p.organization,
+	}
 
 	response, err := r.p.client.Qualitygates.List(listRequest)
 	if err != nil {
@@ -465,7 +452,7 @@ func (r resourceQualityGate) Delete(ctx context.Context, req tfsdk.DeleteResourc
 	}
 
 	request := qualitygates.DestroyRequest{
-		Id:           state.ID.String(),
+		Id:           fmt.Sprintf("%d", int(state.ID.Value)),
 		Organization: r.p.organization,
 	}
 
