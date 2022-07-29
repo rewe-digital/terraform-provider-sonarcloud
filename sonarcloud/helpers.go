@@ -114,6 +114,10 @@ func findQualityGate(response *qualitygates.ListResponse, name string) (QualityG
 				Name:      types.String{Value: q.Name},
 				IsBuiltIn: types.Bool{Value: q.IsBuiltIn},
 				IsDefault: types.Bool{Value: q.IsDefault},
+				// Not sure what to do about actions. I haven't set them somewhere in resource_quality_gates.go, but I cannot find where that is.
+				// Running acceptance tests shows the error with the helpful message "unhandled unknown value"
+				// More info on the error here: https://github.com/hashicorp/terraform-plugin-framework/issues/191
+				// It may be okay to leave this commented out, as these values are not user actionable.
 				// Actions: Action{
 				// 	Copy:             types.Bool{Value: q.Actions.Copy},
 				// 	Delete:           types.Bool{Value: q.Actions.Delete},

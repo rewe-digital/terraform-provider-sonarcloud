@@ -47,6 +47,10 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 					tfsdk.UseStateForUnknown(),
 				},
 			},
+			// Not sure what to do about actions. I haven't set them somewhere in resource_quality_gates.go, but I cannot find where that is.
+			// Running acceptance tests shows the error with the helpful message "unhandled unknown value"
+			// More info on the error here: https://github.com/hashicorp/terraform-plugin-framework/issues/191
+			// It may be okay to leave this commented out, as these values are not user actionable.
 			// "actions": {
 			// 	Description:   "What actions can be performed on this Quality Gate.",
 			// 	Computed:      true,
@@ -270,6 +274,11 @@ func (r resourceQualityGate) Read(ctx context.Context, req tfsdk.ReadResourceReq
 	}
 }
 
+// Some good examples of update functions for SetNestedAttributes:
+// https://github.com/vercel/terraform-provider-vercel/blob/b38f0abb6774bf2b0314bc94808d497f2e7b9e50/vercel/resource_project.go
+// https://github.com/adnsio/terraform-provider-k0s/blob/c8db5204e70e15484973d5680fe14ed184e719ef/internal/provider/cluster_resource.go#L366
+// https://github.com/devopsarr/terraform-provider-sonarr/blob/078ba51ca03a7782af5fbaaf48f6ebd15284116c/internal/provider/quality_profile_resource.go (DOUBLE NESTED!!! :O)
+// Thanks to those who wrote the above resources, they really helped me (Arnav Bhutani @Bhutania) out :)
 func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
 	//retrieve values from state
 	var state QualityGate
@@ -287,14 +296,11 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 		return
 	}
 
-	changed := changedAttrs(req, diags)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	toCreate, toUpdate, toRemove := diffConditions(state.Conditions, plan.Conditions)
 
-	if _, ok := changed["name"]; ok {
+	if diffName(state, plan) {
 		request := qualitygates.RenameRequest{
-			Id:           state.ID.String(),
+			Id:           fmt.Sprintf("%d", int(state.ID.Value)),
 			Name:         plan.Name.Value,
 			Organization: r.p.organization,
 		}
@@ -309,10 +315,10 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 		}
 	}
 
-	if _, ok := changed["isDefault"]; ok {
+	if diffDefault(state, plan) {
 		if plan.IsDefault.Value {
 			request := qualitygates.SetAsDefaultRequest{
-				Id:           state.ID.String(),
+				Id:           fmt.Sprintf("%d", int(state.ID.Value)),
 				Organization: r.p.organization,
 			}
 			err := r.p.client.Qualitygates.SetAsDefault(request)
@@ -326,102 +332,58 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 		}
 	}
 
-	if _, ok := changed["conditions"]; ok {
-		// delete all state conditions if there are none in the plan.
-		if len(plan.Conditions) < 0 {
-			for _, condition := range state.Conditions {
-				request := qualitygates.DeleteConditionRequest{
-					Id:           condition.ID.String(),
-					Organization: r.p.organization,
-				}
-				err := r.p.client.Qualitygates.DeleteCondition(request)
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Could not delete Quality Gate Condition.",
-						fmt.Sprintf("The DeleteCondition request returned an error %+v", err),
-					)
-					return
-				}
-			}
-		} else {
-			// This is long, maybe unnecessarily complex, and its effiency is questionable.
-			// I'm not to certain how to evaluate state vs. plan changes for nested attribute lists.
-			stateUpdate := Conditions{}
-			stateCreate := Conditions{}
-			stateDelete := state.Conditions
-			for _, planCond := range plan.Conditions {
-				notFound := true
-				for i := len(state.Conditions) - 1; i >= 0; i-- {
-					if planCond.Metric == state.Conditions[i].Metric {
-						notFound = false
-						stateDelete = append(stateDelete[:i], stateDelete[i+1:]...)
-						updatedCondition := Condition{
-							ID:     state.Conditions[i].ID,
-							Error:  planCond.Error,
-							Metric: planCond.Metric,
-							Op:     planCond.Op,
-						}
-						stateUpdate.Conditions = append(stateUpdate.Conditions, updatedCondition)
-					}
-				}
-				if notFound {
-					stateCreate.Conditions = append(stateCreate.Conditions, planCond)
-				}
+	if len(toUpdate) > 0 {
+		for _, c := range toUpdate {
+			request := qualitygates.UpdateConditionRequest{
+				Error:        c.Error.Value,
+				Id:           fmt.Sprintf("%d", int(c.ID.Value)),
+				Metric:       c.Metric.Value,
+				Op:           c.Op.Value,
+				Organization: r.p.organization,
 			}
 
-			if len(stateUpdate.Conditions) > 0 {
-				for _, updateCondition := range stateUpdate.Conditions {
-					request := qualitygates.UpdateConditionRequest{
-						Error:        updateCondition.Error.Value,
-						Id:           updateCondition.ID.String(),
-						Metric:       updateCondition.Metric.Value,
-						Op:           updateCondition.Op.Value,
-						Organization: r.p.organization,
-					}
-
-					err := r.p.client.Qualitygates.UpdateCondition(request)
-					if err != nil {
-						resp.Diagnostics.AddError(
-							"Could not update QualityGate condition",
-							fmt.Sprintf("The UpdateCondition request returned an error %+v", err),
-						)
-						return
-					}
-				}
+			err := r.p.client.Qualitygates.UpdateCondition(request)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Could not update QualityGate condition",
+					fmt.Sprintf("The UpdateCondition request returned an error %+v", err),
+				)
+				return
 			}
-			if len(stateCreate.Conditions) > 0 {
-				for _, createCondition := range stateCreate.Conditions {
-					request := qualitygates.CreateConditionRequest{
-						Error:        createCondition.Error.Value,
-						Metric:       createCondition.Metric.Value,
-						Op:           createCondition.Op.Value,
-						Organization: r.p.organization,
-					}
-					_, err := r.p.client.Qualitygates.CreateCondition(request)
-					if err != nil {
-						resp.Diagnostics.AddError(
-							"Could not create QualityGate condition",
-							fmt.Sprintf("The CreateCondition request returned an error %+v", err),
-						)
-						return
-					}
-				}
+		}
+	}
+	if len(toCreate) > 0 {
+		for _, c := range toCreate {
+			request := qualitygates.CreateConditionRequest{
+				GateId:       fmt.Sprintf("%d", int(state.ID.Value)),
+				Error:        c.Error.Value,
+				Metric:       c.Metric.Value,
+				Op:           c.Op.Value,
+				Organization: r.p.organization,
 			}
-			if len(stateDelete) > 0 {
-				for _, deleteCondition := range stateDelete {
-					request := qualitygates.DeleteConditionRequest{
-						Id:           deleteCondition.ID.String(),
-						Organization: r.p.organization,
-					}
-					err := r.p.client.Qualitygates.DeleteCondition(request)
-					if err != nil {
-						resp.Diagnostics.AddError(
-							"Could not delete QualityGate condition",
-							fmt.Sprintf("The DeleteCondition request returned an error %+v", err),
-						)
-						return
-					}
-				}
+			_, err := r.p.client.Qualitygates.CreateCondition(request)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Could not create QualityGate condition",
+					fmt.Sprintf("The CreateCondition request returned an error %+v", err),
+				)
+				return
+			}
+		}
+	}
+	if len(toRemove) > 0 {
+		for _, c := range toRemove {
+			request := qualitygates.DeleteConditionRequest{
+				Id:           fmt.Sprintf("%d", int(c.ID.Value)),
+				Organization: r.p.organization,
+			}
+			err := r.p.client.Qualitygates.DeleteCondition(request)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Could not delete QualityGate condition",
+					fmt.Sprintf("The DeleteCondition request returned an error %+v", err),
+				)
+				return
 			}
 		}
 	}
@@ -473,4 +435,52 @@ func (r resourceQualityGate) Delete(ctx context.Context, req tfsdk.DeleteResourc
 func (r resourceQualityGate) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
 	// I have no idea what this is doing, but the only required element for quality gate operations is the gate's name. (names are unique)
 	tfsdk.ResourceImportStatePassthroughID(ctx, tftypes.NewAttributePath().WithAttributeName("name"), req, resp)
+}
+
+// Check if quality Gate name is the same
+func diffName(old, new QualityGate) bool {
+	if old.Name.Equal(new.Name) {
+		return false
+	}
+	return true
+}
+
+//Check if a Quality Gate has been set to default
+func diffDefault(old, new QualityGate) bool {
+	if old.IsDefault.Equal(new.IsDefault) {
+		return false
+	}
+	return true
+}
+
+// Check if Quality Gate Conditions are different
+func diffConditions(old, new []Condition) (create, update, remove []Condition) {
+	create = []Condition{}
+	remove = []Condition{}
+	update = []Condition{}
+
+	for _, c := range new {
+		if !containsCondition(old, c) {
+			create = append(create, c)
+		} else {
+			update = append(update, c)
+		}
+	}
+	for _, c := range old {
+		if !containsCondition(new, c) {
+			remove = append(remove, c)
+		}
+	}
+
+	return create, update, remove
+}
+
+// Check if a condition is contained in a condition list
+func containsCondition(list []Condition, item Condition) bool {
+	for _, c := range list {
+		if c.Metric.Equal(item.Metric) {
+			return true
+		}
+	}
+	return false
 }

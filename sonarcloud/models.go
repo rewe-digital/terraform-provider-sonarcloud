@@ -51,6 +51,10 @@ type Project struct {
 	Visibility types.String `tfsdk:"visibility"`
 }
 
+// Not sure what to do about actions. I haven't set them somewhere in resource_quality_gates.go, but I cannot find where that is.
+// Running acceptance tests shows the error with the helpful message "unhandled unknown value"
+// More info on the error here: https://github.com/hashicorp/terraform-plugin-framework/issues/191
+// It may be okay to leave this commented out, as these values are not user actionable.
 // type Action struct {
 // 	Copy              types.Bool `tfsdk:"copy"`
 // 	Delete            types.Bool `tfsdk:"delete"`
