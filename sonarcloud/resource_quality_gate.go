@@ -43,6 +43,9 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 				Description: "Defines whether the quality gate is the defualt gate for an organization. **WARNING**: Must be assigned to one quality gate per organization at all times",
 				Optional:    true,
 				Computed:    true,
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.UseStateForUnknown(),
+				},
 			},
 			// "actions": {
 			// 	Description:   "What actions can be performed on this Quality Gate.",

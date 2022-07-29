@@ -23,6 +23,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 			{
 				Config: testAccQualityGateConfig(names[0], metrics[0], testError[0], Op[0]),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.#", "1"),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.metric", metrics[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.error", testError[0]),

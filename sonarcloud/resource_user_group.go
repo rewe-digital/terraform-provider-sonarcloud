@@ -3,12 +3,13 @@ package sonarcloud
 import (
 	"context"
 	"fmt"
+	"math/big"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_groups"
-	"math/big"
 )
 
 type resourceUserGroupType struct{}
