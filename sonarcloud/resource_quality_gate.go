@@ -296,8 +296,6 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 		return
 	}
 
-	toCreate, toUpdate, toRemove := diffConditions(state.Conditions, plan.Conditions)
-
 	if diffName(state, plan) {
 		request := qualitygates.RenameRequest{
 			Id:           fmt.Sprintf("%d", int(state.ID.Value)),
@@ -316,7 +314,7 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 	}
 
 	if diffDefault(state, plan) {
-		if plan.IsDefault.Value {
+		if plan.IsDefault.Equal(types.Bool{Value: true}) {
 			request := qualitygates.SetAsDefaultRequest{
 				Id:           fmt.Sprintf("%d", int(state.ID.Value)),
 				Organization: r.p.organization,
@@ -330,7 +328,25 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 				return
 			}
 		}
+		// Hard coded default present in all repositories (Sonar way)
+		// This assumes that the Sonar way default quality gate will
+		// never change its ID and remain the default forever.
+		if plan.IsDefault.Equal(types.Bool{Value: false}) {
+			request := qualitygates.SetAsDefaultRequest{
+				Id:           "9",
+				Organization: r.p.organization,
+			}
+			err := r.p.client.Qualitygates.SetAsDefault(request)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Could not set `Sonar Way` quality gate to default",
+					fmt.Sprintf("The SetAsDefault request returned an error %+v", err),
+				)
+			}
+		}
 	}
+
+	toCreate, toUpdate, toRemove := diffConditions(state.Conditions, plan.Conditions)
 
 	if len(toUpdate) > 0 {
 		for _, c := range toUpdate {
@@ -414,6 +430,23 @@ func (r resourceQualityGate) Delete(ctx context.Context, req tfsdk.DeleteResourc
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// Hard coded default present in all repositories (Sonar way)
+	// This assumes that the Sonar way default quality gate will
+	// never change its ID and remain the default forever.
+	if state.IsDefault.Equal(types.Bool{Value: true}) {
+		request := qualitygates.SetAsDefaultRequest{
+			Id:           "9",
+			Organization: r.p.organization,
+		}
+		err := r.p.client.Qualitygates.SetAsDefault(request)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Could not reset Organization's default quality gate pre-delete",
+				fmt.Sprintf("The SetAsDefault request returned an error: %+v", err),
+			)
+		}
 	}
 
 	request := qualitygates.DestroyRequest{
