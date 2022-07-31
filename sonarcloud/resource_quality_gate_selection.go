@@ -94,7 +94,7 @@ func (r resourceQualityGateSelection) Create(ctx context.Context, req tfsdk.Crea
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Could not read Quality Gate Selection",
-			fmt.Sprintf("The Search request reutrned an error: %+v", err),
+			fmt.Sprintf("The Search request returned an error: %+v", err),
 		)
 		return
 	}
