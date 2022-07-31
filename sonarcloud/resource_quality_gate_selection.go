@@ -14,12 +14,11 @@ type resourceQualityGateSelectionType struct{}
 
 func (r resourceQualityGateSelectionType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
-		Version:     1,
 		Description: "This resource selects a quality gate for a project",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Type:        types.Float64Type,
-				Description: "The ID of the selection resource",
+				Description: "The ID of the selection.",
 				Computed:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.UseStateForUnknown(),
@@ -27,16 +26,14 @@ func (r resourceQualityGateSelectionType) GetSchema(_ context.Context) (tfsdk.Sc
 			},
 			"gate_id": {
 				Type:        types.StringType,
-				Description: "The ID of the quality gate that is being selected",
+				Description: "The ID of the quality gate that is selecting the project(s).",
 				Required:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
 			},
 			"project_key": {
-				Type: types.SetType{
-					ElemType: types.StringType,
-				},
+				Type:        types.StringType,
 				Description: "The Keys of the projects which have been selected on the referenced quality gate",
 				Required:    true,
 			},
@@ -54,7 +51,6 @@ type resourceQualityGateSelection struct {
 	p provider
 }
 
-// Create implements tfsdk.Resource
 func (r resourceQualityGateSelection) Create(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
 	if !r.p.configured {
 		resp.Diagnostics.AddError(
@@ -76,7 +72,7 @@ func (r resourceQualityGateSelection) Create(ctx context.Context, req tfsdk.Crea
 	// Fill in api action struct for Quality Gates
 	request := qualitygates.SelectRequest{
 		GateId:       plan.GateId.Value,
-		ProjectKey:   plan.projectKey.Value,
+		ProjectKey:   plan.ProjectKey.Value,
 		Organization: r.p.organization,
 	}
 	err := r.p.client.Qualitygates.Select(request)
@@ -105,11 +101,11 @@ func (r resourceQualityGateSelection) Create(ctx context.Context, req tfsdk.Crea
 
 	var result Selection
 	for _, project := range res.Results {
-		if project.Key == plan.projectKey.Value {
+		if project.Key == plan.ProjectKey.Value {
 			result = Selection{
 				ID:         types.Float64{Value: project.Id},
 				GateId:     types.String{Value: plan.GateId.Value},
-				projectKey: types.String{Value: project.Key},
+				ProjectKey: types.String{Value: project.Key},
 			}
 			break
 		}
@@ -128,7 +124,7 @@ func (r resourceQualityGateSelection) Delete(ctx context.Context, req tfsdk.Dele
 
 	request := qualitygates.DeselectRequest{
 		Organization: r.p.organization,
-		ProjectKey:   state.projectKey.Value,
+		ProjectKey:   state.ProjectKey.Value,
 	}
 	err := r.p.client.Qualitygates.Deselect(request)
 	if err != nil {
@@ -137,10 +133,10 @@ func (r resourceQualityGateSelection) Delete(ctx context.Context, req tfsdk.Dele
 			fmt.Sprintf("The Deselect request returned an error: %+v", err),
 		)
 	}
-	panic("unimplemented")
+
+	resp.State.RemoveResource(ctx)
 }
 
-// Read implements tfsdk.Resource
 func (r resourceQualityGateSelection) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
 	var state Selection
 	diags := req.State.Get(ctx, &state)
@@ -167,9 +163,10 @@ func (r resourceQualityGateSelection) Read(ctx context.Context, req tfsdk.ReadRe
 			result := Selection{
 				ID:         types.Float64{Value: searchR.Id},
 				GateId:     types.String{Value: state.GateId.Value},
-				projectKey: types.String{Value: searchR.Key},
+				ProjectKey: types.String{Value: searchR.Key},
 			}
 			diags = resp.State.Set(ctx, result)
+			resp.Diagnostics.Append(diags...)
 			found = true
 		}
 	}
@@ -178,7 +175,6 @@ func (r resourceQualityGateSelection) Read(ctx context.Context, req tfsdk.ReadRe
 	}
 }
 
-// Update implements tfsdk.Resource
 func (r resourceQualityGateSelection) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
 	var state Selection
 	diags := req.State.Get(ctx, &state)
@@ -199,13 +195,52 @@ func (r resourceQualityGateSelection) Update(ctx context.Context, req tfsdk.Upda
 	if _, ok := changed["project_key"]; ok {
 		deselectRequest := qualitygates.DeselectRequest{
 			Organization: r.p.organization,
-			ProjectKey:   state.projectKey.Value,
+			ProjectKey:   state.ProjectKey.Value,
+		}
+		err := r.p.client.Qualitygates.Deselect(deselectRequest)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Could not Deselect the Quality Gate selection",
+				fmt.Sprintf("The Deselect request returned an error: %+v", err),
+			)
+			return
 		}
 		selectRequest := qualitygates.SelectRequest{
 			GateId:       state.GateId.Value,
 			Organization: r.p.organization,
-			ProjectKey:   plan.projectKey.Value,
+			ProjectKey:   plan.ProjectKey.Value,
+		}
+		err = r.p.client.Qualitygates.Select(selectRequest)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Could not Select the Quality Gate selection",
+				fmt.Sprintf("The Select request returned an error: %+v", err),
+			)
 		}
 	}
-	panic("unimplemented")
+
+	request := qualitygates.SearchRequest{
+		GateId:       plan.GateId.Value,
+		Organization: r.p.organization,
+	}
+	res, err := r.p.client.Qualitygates.Search(request)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Could not Read the Quality Gate Selection",
+			fmt.Sprintf("The Search request returned an error: %+v", err),
+		)
+		return
+	}
+	var result Selection
+	for _, searchR := range res.Results {
+		if searchR.Id == state.ID.Value {
+			result = Selection{
+				ID:         types.Float64{Value: searchR.Id},
+				GateId:     types.String{Value: plan.GateId.Value},
+				ProjectKey: types.String{Value: searchR.Key},
+			}
+		}
+	}
+	diags = resp.State.Set(ctx, result)
+	resp.Diagnostics.Append(diags...)
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func TestAccDataSourceQualityGates(t *testing.T) {
-	numberOfDefaultQualityGates := "2" //Extra gate is the 'Sonar Way' default quality gate.
+	numberOfDefaultQualityGates := "1"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },

@@ -93,6 +93,5 @@ type QualityGates struct {
 type Selection struct {
 	ID         types.Float64 `tfsdk:"id"`
 	GateId     types.String  `tfsdk:"gate_id"`
-	ProjectId  types.String  `tfsdk:"project_id"`
-	projectKey types.String  `tfsdk:"project_key"`
+	ProjectKey types.String  `tfsdk:"project_key"`
 }

@@ -185,6 +185,20 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 	}
 	tempQualityGateId := int(res.Id)
 
+	if plan.IsDefault.Value {
+		setDefualtRequest := qualitygates.SetAsDefaultRequest{
+			Id:           fmt.Sprintf("%d", tempQualityGateId),
+			Organization: r.p.organization,
+		}
+		err := r.p.client.Qualitygates.SetAsDefault(setDefualtRequest)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Could not set Quality Gate as default",
+				fmt.Sprintf("The Quality Gate SetAsDefault request returned an error: %+v", err),
+			)
+		}
+	}
+
 	conditionRequests := qualitygates.CreateConditionRequest{}
 	for _, conditionPlan := range plan.Conditions {
 		conditionRequests = qualitygates.CreateConditionRequest{

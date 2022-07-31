@@ -10,6 +10,7 @@ import (
 
 func TestAccResourceQualityGate(t *testing.T) {
 	names := []string{"quality_gate_a", "quality_gate_b"}
+	def := []string{"true", "false"}
 	metrics := []string{"coverage", "duplicated_lines_density"}
 	testError := []string{"10", "11"}
 	Op := []string{"LT", "GT"}
@@ -21,9 +22,8 @@ func TestAccResourceQualityGate(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccQualityGateConfig(names[0], metrics[0], testError[0], Op[0]),
+				Config: testAccQualityGateConfig(names[0], def[0], metrics[0], testError[0], Op[0]),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.#", "1"),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.metric", metrics[0]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.error", testError[0]),
@@ -31,7 +31,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccQualityGateConfig(names[1], metrics[1], testError[1], Op[1]),
+				Config: testAccQualityGateConfig(names[1], def[1], metrics[1], testError[1], Op[1]),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "name", names[1]),
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.metric", metrics[1]),
@@ -48,10 +48,11 @@ func testAccQualityGateDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccQualityGateConfig(name, metric, err, op string) string {
+func testAccQualityGateConfig(name, def, metric, err, op string) string {
 	return fmt.Sprintf(`
 resource "sonarcloud_quality_gate" "test" {
 	name = "%s"
+	is_default = "%s"
 	conditions = [
 		{
 			metric = "%s"
@@ -60,6 +61,6 @@ resource "sonarcloud_quality_gate" "test" {
 		}
 	]
 }
-	`, name, metric, err, op)
+	`, name, def, metric, err, op)
 
 }

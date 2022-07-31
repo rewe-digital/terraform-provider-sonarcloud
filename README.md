@@ -30,6 +30,11 @@ The project should have the following 3 groups:
 - Members (Default) - with 2 members
 - Owners (Should be auto-created as well) - with 1 member
 - TEST_DONT_REMOVE - with 0 members (see environment variables below to see how to customize this)
+
+Acceptance tests also rely on the following preconfigured SonarCloud Resources:
+
+- One test Quality Gate
+- One test Project
   
  Set the following environment variables before running the acceptance test: 
 
@@ -40,4 +45,6 @@ The project should have the following 3 groups:
 | `SONARCLOUD_TEST_USER_LOGIN` | The login for testing `sonarcloud_user_group_member`. Must be an existing member of the org and in the form of `<github_handle>@github` if you have imported the user via GitHub. |
 | `SONARCLOUD_TEST_GROUP_NAME` | The name of an existing group to which the test-user will be added and removed from. | 
 | `SONARCLOUD_TOKEN_TEST_USER_LOGIN` | The login for testing `sonarcloud_user_token`. This must be the login that also has the existing `SONARCLOUD_TOKEN`. |
+| `SONARCLOUD_PROJECT_KEY` | The Key of a test `project` for testing `sonarcloud_quality_gate_selection`. |
+| `SONARCLOUD_QUALITY_GATE_ID` | The `Gate_Id` of a test `Quality Gate` for testing `sonarcloud_qualtiy_gate_selection`. |
  

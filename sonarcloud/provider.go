@@ -86,11 +86,12 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 
 func (p *provider) GetResources(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
 	return map[string]tfsdk.ResourceType{
-		"sonarcloud_user_group":        resourceUserGroupType{},
-		"sonarcloud_user_group_member": resourceUserGroupMemberType{},
-		"sonarcloud_project":           resourceProjectType{},
-		"sonarcloud_user_token":        resourceUserTokenType{},
-		"sonarcloud_quality_gate":      resourceQualityGateType{},
+		"sonarcloud_user_group":             resourceUserGroupType{},
+		"sonarcloud_user_group_member":      resourceUserGroupMemberType{},
+		"sonarcloud_project":                resourceProjectType{},
+		"sonarcloud_user_token":             resourceUserTokenType{},
+		"sonarcloud_quality_gate":           resourceQualityGateType{},
+		"sonarcloud_quality_gate_selection": resourceQualityGateSelectionType{},
 	}, nil
 }
 
