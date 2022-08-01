@@ -70,8 +70,6 @@ type QualityGate struct {
 	IsBuiltIn  types.Bool    `tfsdk:"is_built_in"`
 	IsDefault  types.Bool    `tfsdk:"is_default"`
 	Name       types.String  `tfsdk:"name"`
-	// Actions    Action        `tfsdk:"actions"`
-
 }
 
 type QualityGates struct {

@@ -73,4 +73,5 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 )
 
+// temp change while waiting for go-sonarcloud PR.
 replace github.com/reinoudk/go-sonarcloud v0.2.0 => github.com/bhutania/go-sonarcloud v0.0.0-20220801175728-2570db9f6099

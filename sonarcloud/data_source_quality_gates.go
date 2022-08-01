@@ -50,46 +50,6 @@ func (d dataSourceQualityGateType) GetSchema(__ context.Context) (tfsdk.Schema, 
 						Description: "Is this Quality gate built in?",
 						Optional:    true,
 					},
-					// Not sure what to do about actions. I haven't set them somewhere in resource_quality_gates.go, but I cannot find where that is.
-					// Running acceptance tests shows the error with the helpful message "unhandled unknown value"
-					// More info on the error here: https://github.com/hashicorp/terraform-plugin-framework/issues/191
-					// It may be okay to leave this commented out, as these values are not user actionable.
-					// "actions": {
-					// 	Description: "What actions can be performed on this Quality Gate",
-					// 	Computed:    true,
-					// 	Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-					// 		"rename": {
-					// 			Type:        types.BoolType,
-					// 			Description: "Whether this object can be renamed",
-					// 			Computed:    true,
-					// 		},
-					// 		"set_as_default": {
-					// 			Type:        types.BoolType,
-					// 			Description: "Whether this object can be set as Default",
-					// 			Computed:    true,
-					// 		},
-					// 		"copy": {
-					// 			Type:        types.BoolType,
-					// 			Description: "Whether this object can be copied",
-					// 			Computed:    true,
-					// 		},
-					// 		"associate_projects": {
-					// 			Type:        types.BoolType,
-					// 			Description: "Whether this object can be associated with Projects",
-					// 			Computed:    true,
-					// 		},
-					// 		"delete": {
-					// 			Type:        types.BoolType,
-					// 			Description: "Whether this object can be deleted",
-					// 			Computed:    true,
-					// 		},
-					// 		"manage_conditions": {
-					// 			Type:        types.BoolType,
-					// 			Description: "Whether this object can be managed",
-					// 			Computed:    true,
-					// 		},
-					// 	}),
-					// },
 					"conditions": {
 						Optional:    true,
 						Description: "The conditions of this quality gate.",
@@ -165,19 +125,11 @@ func (d dataSourceQualityGate) Read(ctx context.Context, req tfsdk.ReadDataSourc
 			})
 		}
 		allQualityGates = append(allQualityGates, QualityGate{
-			ID:        types.String{Value: fmt.Sprintf("%d", int(qualityGate.Id))},
-			GateId:    types.Float64{Value: qualityGate.Id},
-			IsBuiltIn: types.Bool{Value: qualityGate.IsBuiltIn},
-			IsDefault: types.Bool{Value: qualityGate.IsDefault},
-			Name:      types.String{Value: qualityGate.Name},
-			// Actions: Action{
-			// 	Copy:              types.Bool{Value: qualityGate.Actions.Copy},
-			// 	Delete:            types.Bool{Value: qualityGate.Actions.Delete},
-			// 	ManageConditions:  types.Bool{Value: qualityGate.Actions.ManageConditions},
-			// 	Rename:            types.Bool{Value: qualityGate.Actions.Rename},
-			// 	SetAsDefault:      types.Bool{Value: qualityGate.Actions.SetAsDefault},
-			// 	AssociateProjects: types.Bool{Value: qualityGate.Actions.AssociateProjects},
-			// },
+			ID:         types.String{Value: fmt.Sprintf("%d", int(qualityGate.Id))},
+			GateId:     types.Float64{Value: qualityGate.Id},
+			IsBuiltIn:  types.Bool{Value: qualityGate.IsBuiltIn},
+			IsDefault:  types.Bool{Value: qualityGate.IsDefault},
+			Name:       types.String{Value: qualityGate.Name},
 			Conditions: allConditions,
 		})
 	}
