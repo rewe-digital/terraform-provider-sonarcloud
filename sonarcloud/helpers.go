@@ -1,7 +1,9 @@
 package sonarcloud
 
 import (
+	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -111,21 +113,11 @@ func findQualityGate(response *qualitygates.ListResponse, name string) (QualityG
 	for _, q := range response.Qualitygates {
 		if q.Name == name {
 			result = QualityGate{
-				ID:        types.Float64{Value: q.Id},
+				ID:        types.String{Value: fmt.Sprintf("%d", int(q.Id))},
+				GateId:    types.Float64{Value: q.Id},
 				Name:      types.String{Value: q.Name},
 				IsBuiltIn: types.Bool{Value: q.IsBuiltIn},
 				IsDefault: types.Bool{Value: q.IsDefault},
-				// Not sure what to do about actions. I haven't set them somewhere in resource_quality_gates.go, but I cannot find where that is.
-				// Running acceptance tests shows the error with the helpful message "unhandled unknown value"
-				// More info on the error here: https://github.com/hashicorp/terraform-plugin-framework/issues/191
-				// It may be okay to leave this commented out, as these values are not user actionable.
-				// Actions: Action{
-				// 	Copy:             types.Bool{Value: q.Actions.Copy},
-				// 	Delete:           types.Bool{Value: q.Actions.Delete},
-				// 	ManageConditions: types.Bool{Value: q.Actions.ManageConditions},
-				// 	Rename:           types.Bool{Value: q.Actions.Rename},
-				// 	SetAsDefault:     types.Bool{Value: q.Actions.SetAsDefault},
-				// },
 			}
 			for _, c := range q.Conditions {
 				result.Conditions = append(result.Conditions, Condition{
@@ -152,7 +144,7 @@ func findSelection(response *qualitygates.SearchResponse, keys []attr.Value) (Se
 		ok = false
 		for _, s := range response.Results {
 			if k.Equal(types.String{Value: s.Key}) {
-				projectKeys = append(projectKeys, types.String{Value: s.Key})
+				projectKeys = append(projectKeys, types.String{Value: strings.Trim(s.Key, "\"")})
 				ok = true
 				break
 			}

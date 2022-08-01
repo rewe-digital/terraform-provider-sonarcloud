@@ -72,3 +72,5 @@ require (
 	google.golang.org/grpc v1.47.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 )
+
+replace github.com/reinoudk/go-sonarcloud v0.2.0 => github.com/bhutania/go-sonarcloud v0.0.0-20220801175728-2570db9f6099

@@ -18,6 +18,11 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 		Description: "This resource manages a Quality Gate",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
+				Type:        types.StringType,
+				Description: "Implicit Terraform ID",
+				Computed:    true,
+			},
+			"gate_id": {
 				Type:        types.Float64Type,
 				Description: "Id computed by SonarCloud servers",
 				Computed:    true,
@@ -47,47 +52,6 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 					tfsdk.UseStateForUnknown(),
 				},
 			},
-			// Not sure what to do about actions. I haven't set them somewhere in resource_quality_gates.go, but I cannot find where that is.
-			// Running acceptance tests shows the error with the helpful message "unhandled unknown value"
-			// More info on the error here: https://github.com/hashicorp/terraform-plugin-framework/issues/191
-			// It may be okay to leave this commented out, as these values are not user actionable.
-			// "actions": {
-			// 	Description:   "What actions can be performed on this Quality Gate.",
-			// 	Computed:      true,
-			// 	PlanModifiers: tfsdk.AttributePlanModifiers{},
-			// 	Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-			// 		"rename": {
-			// 			Type:        types.BoolType,
-			// 			Description: "Whether this object can be renamed",
-			// 			Computed:    true,
-			// 		},
-			// 		"set_as_default": {
-			// 			Type:        types.BoolType,
-			// 			Description: "Whether this object can be set as Default",
-			// 			Computed:    true,
-			// 		},
-			// 		"copy": {
-			// 			Type:        types.BoolType,
-			// 			Description: "Whether this object can be copied",
-			// 			Computed:    true,
-			// 		},
-			// 		"associate_projects": {
-			// 			Type:        types.BoolType,
-			// 			Description: "Whether this object can be associated with Projects",
-			// 			Computed:    true,
-			// 		},
-			// 		"delete": {
-			// 			Type:        types.BoolType,
-			// 			Description: "Whether this object can be deleted",
-			// 			Computed:    true,
-			// 		},
-			// 		"manage_conditions": {
-			// 			Type:        types.BoolType,
-			// 			Description: "Whether this object can be managed",
-			// 			Computed:    true,
-			// 		},
-			// 	}),
-			// },
 			"conditions": {
 				Optional:    true,
 				Description: "The conditions of this quality gate.",
@@ -180,14 +144,14 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 	}
 
 	var result = QualityGate{
-		ID:   types.Float64{Value: res.Id},
-		Name: types.String{Value: res.Name},
+		ID:     types.String{Value: fmt.Sprintf("%d", int(res.Id))},
+		GateId: types.Float64{Value: res.Id},
+		Name:   types.String{Value: res.Name},
 	}
-	tempQualityGateId := int(res.Id)
 
 	if plan.IsDefault.Value {
 		setDefualtRequest := qualitygates.SetAsDefaultRequest{
-			Id:           fmt.Sprintf("%d", tempQualityGateId),
+			Id:           fmt.Sprintf("%d", int(result.GateId.Value)),
 			Organization: r.p.organization,
 		}
 		err := r.p.client.Qualitygates.SetAsDefault(setDefualtRequest)
@@ -203,7 +167,7 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 	for _, conditionPlan := range plan.Conditions {
 		conditionRequests = qualitygates.CreateConditionRequest{
 			Error:        conditionPlan.Error.Value,
-			GateId:       fmt.Sprintf("%d", tempQualityGateId),
+			GateId:       fmt.Sprintf("%d", int(result.GateId.Value)),
 			Metric:       conditionPlan.Metric.Value,
 			Op:           conditionPlan.Op.Value,
 			Organization: r.p.organization,
@@ -242,14 +206,6 @@ func (r resourceQualityGate) Create(ctx context.Context, req tfsdk.CreateResourc
 	if createdQualityGate, ok := findQualityGate(listRes, result.Name.Value); ok {
 		result.IsBuiltIn = createdQualityGate.IsBuiltIn
 		result.IsDefault = createdQualityGate.IsDefault
-		// result.Actions = Action{
-		// 	Delete:            createdQualityGate.Actions.Delete,
-		// 	Copy:              createdQualityGate.Actions.Copy,
-		// 	AssociateProjects: createdQualityGate.Actions.AssociateProjects,
-		// 	ManageConditions:  createdQualityGate.Actions.ManageConditions,
-		// 	Rename:            createdQualityGate.Actions.Rename,
-		// 	SetAsDefault:      createdQualityGate.Actions.SetAsDefault,
-		// }
 	}
 
 	diags = resp.State.Set(ctx, result)
@@ -312,7 +268,7 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 
 	if diffName(state, plan) {
 		request := qualitygates.RenameRequest{
-			Id:           fmt.Sprintf("%d", int(state.ID.Value)),
+			Id:           fmt.Sprintf("%d", int(state.GateId.Value)),
 			Name:         plan.Name.Value,
 			Organization: r.p.organization,
 		}
@@ -330,7 +286,7 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 	if diffDefault(state, plan) {
 		if plan.IsDefault.Equal(types.Bool{Value: true}) {
 			request := qualitygates.SetAsDefaultRequest{
-				Id:           fmt.Sprintf("%d", int(state.ID.Value)),
+				Id:           fmt.Sprintf("%d", int(state.GateId.Value)),
 				Organization: r.p.organization,
 			}
 			err := r.p.client.Qualitygates.SetAsDefault(request)
@@ -385,7 +341,7 @@ func (r resourceQualityGate) Update(ctx context.Context, req tfsdk.UpdateResourc
 	if len(toCreate) > 0 {
 		for _, c := range toCreate {
 			request := qualitygates.CreateConditionRequest{
-				GateId:       fmt.Sprintf("%d", int(state.ID.Value)),
+				GateId:       fmt.Sprintf("%d", int(state.GateId.Value)),
 				Error:        c.Error.Value,
 				Metric:       c.Metric.Value,
 				Op:           c.Op.Value,
@@ -464,7 +420,7 @@ func (r resourceQualityGate) Delete(ctx context.Context, req tfsdk.DeleteResourc
 	}
 
 	request := qualitygates.DestroyRequest{
-		Id:           fmt.Sprintf("%d", int(state.ID.Value)),
+		Id:           fmt.Sprintf("%d", int(state.GateId.Value)),
 		Organization: r.p.organization,
 	}
 

@@ -26,6 +26,11 @@ func (d dataSourceQualityGateType) GetSchema(__ context.Context) (tfsdk.Schema, 
 				Description: "A quality gate",
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 					"id": {
+						Type:        types.StringType,
+						Description: "Id for Terraform backend",
+						Computed:    true,
+					},
+					"gate_id": {
 						Type:        types.Float64Type,
 						Description: "Id created by SonarCloud",
 						Computed:    true,
@@ -160,7 +165,8 @@ func (d dataSourceQualityGate) Read(ctx context.Context, req tfsdk.ReadDataSourc
 			})
 		}
 		allQualityGates = append(allQualityGates, QualityGate{
-			ID:        types.Float64{Value: qualityGate.Id},
+			ID:        types.String{Value: fmt.Sprintf("%d", int(qualityGate.Id))},
+			GateId:    types.Float64{Value: qualityGate.Id},
 			IsBuiltIn: types.Bool{Value: qualityGate.IsBuiltIn},
 			IsDefault: types.Bool{Value: qualityGate.IsDefault},
 			Name:      types.String{Value: qualityGate.Name},
