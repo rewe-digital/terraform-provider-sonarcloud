@@ -46,7 +46,7 @@ func testAccQualityGateSelectionConfig(gateId, projectKey string) string {
 	return fmt.Sprintf(`
 resource "sonarcloud_quality_gate_selection" "test" {
 	gate_id = "%s"
-	project_key = "%s"
+	project_key = ["%s"]
 }
 	`, gateId, projectKey)
 }

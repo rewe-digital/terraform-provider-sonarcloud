@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -16,14 +17,6 @@ func (r resourceQualityGateSelectionType) GetSchema(_ context.Context) (tfsdk.Sc
 	return tfsdk.Schema{
 		Description: "This resource selects a quality gate for a project",
 		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Type:        types.Float64Type,
-				Description: "The ID of the selection.",
-				Computed:    true,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					tfsdk.UseStateForUnknown(),
-				},
-			},
 			"gate_id": {
 				Type:        types.StringType,
 				Description: "The ID of the quality gate that is selecting the project(s).",
@@ -33,7 +26,7 @@ func (r resourceQualityGateSelectionType) GetSchema(_ context.Context) (tfsdk.Sc
 				},
 			},
 			"project_key": {
-				Type:        types.StringType,
+				Type:        types.SetType{ElemType: types.StringType},
 				Description: "The Keys of the projects which have been selected on the referenced quality gate",
 				Required:    true,
 			},
@@ -69,19 +62,21 @@ func (r resourceQualityGateSelection) Create(ctx context.Context, req tfsdk.Crea
 		return
 	}
 
-	// Fill in api action struct for Quality Gates
-	request := qualitygates.SelectRequest{
-		GateId:       plan.GateId.Value,
-		ProjectKey:   plan.ProjectKey.Value,
-		Organization: r.p.organization,
-	}
-	err := r.p.client.Qualitygates.Select(request)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Could not create Quality Gate Selection",
-			fmt.Sprintf("The Select request returned an error: %+v", err),
-		)
-		return
+	for _, s := range plan.ProjectKey.Elems {
+		// Fill in api action struct for Quality Gates
+		request := qualitygates.SelectRequest{
+			GateId:       plan.GateId.Value,
+			ProjectKey:   s.(types.String).Value,
+			Organization: r.p.organization,
+		}
+		err := r.p.client.Qualitygates.Select(request)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Could not create Quality Gate Selection",
+				fmt.Sprintf("The Select request returned an error: %+v", err),
+			)
+			return
+		}
 	}
 
 	// Query for selection
@@ -99,19 +94,17 @@ func (r resourceQualityGateSelection) Create(ctx context.Context, req tfsdk.Crea
 		return
 	}
 
-	var result Selection
-	for _, project := range res.Results {
-		if project.Key == plan.ProjectKey.Value {
-			result = Selection{
-				ID:         types.Float64{Value: project.Id},
-				GateId:     types.String{Value: plan.GateId.Value},
-				ProjectKey: types.String{Value: project.Key},
-			}
-			break
-		}
+	if result, ok := findSelection(res, plan.ProjectKey.Elems); ok {
+		result.GateId = types.String{Value: plan.GateId.Value}
+		diags = resp.State.Set(ctx, result)
+		resp.Diagnostics.Append(diags...)
+	} else {
+		resp.Diagnostics.AddError(
+			"Could not find Quality Gate Selection",
+			fmt.Sprintf("The findSelection function was unable to find the project keys: %+v in the response: %+v", plan.ProjectKey.Elems, res),
+		)
+		return
 	}
-	diags = resp.State.Set(ctx, result)
-	resp.Diagnostics.Append(diags...)
 }
 
 func (r resourceQualityGateSelection) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
@@ -122,16 +115,19 @@ func (r resourceQualityGateSelection) Delete(ctx context.Context, req tfsdk.Dele
 		return
 	}
 
-	request := qualitygates.DeselectRequest{
-		Organization: r.p.organization,
-		ProjectKey:   state.ProjectKey.Value,
-	}
-	err := r.p.client.Qualitygates.Deselect(request)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Could not Deselect the Quality Gate Selection",
-			fmt.Sprintf("The Deselect request returned an error: %+v", err),
-		)
+	for _, s := range state.ProjectKey.Elems {
+		request := qualitygates.DeselectRequest{
+			Organization: r.p.organization,
+			ProjectKey:   fmt.Sprintf("%s", s),
+		}
+		err := r.p.client.Qualitygates.Deselect(request)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Could not Deselect the Quality Gate Selection",
+				fmt.Sprintf("The Deselect request returned an error: %+v", err),
+			)
+			return
+		}
 	}
 
 	resp.State.RemoveResource(ctx)
@@ -157,20 +153,11 @@ func (r resourceQualityGateSelection) Read(ctx context.Context, req tfsdk.ReadRe
 		)
 		return
 	}
-	found := false
-	for _, searchR := range res.Results {
-		if searchR.Id == state.ID.Value {
-			result := Selection{
-				ID:         types.Float64{Value: searchR.Id},
-				GateId:     types.String{Value: state.GateId.Value},
-				ProjectKey: types.String{Value: searchR.Key},
-			}
-			diags = resp.State.Set(ctx, result)
-			resp.Diagnostics.Append(diags...)
-			found = true
-		}
-	}
-	if !found {
+	if res, ok := findSelection(res, state.ProjectKey.Elems); ok {
+		res.GateId = types.String{Value: state.GateId.Value}
+		diags = resp.State.Set(ctx, res)
+		resp.Diagnostics.Append(diags...)
+	} else {
 		resp.State.RemoveResource(ctx)
 	}
 }
@@ -190,12 +177,12 @@ func (r resourceQualityGateSelection) Update(ctx context.Context, req tfsdk.Upda
 		return
 	}
 
-	changed := changedAttrs(req, diags)
+	sel, rem := diffSelection(state, plan)
 
-	if _, ok := changed["project_key"]; ok {
+	for _, s := range rem {
 		deselectRequest := qualitygates.DeselectRequest{
 			Organization: r.p.organization,
-			ProjectKey:   state.ProjectKey.Value,
+			ProjectKey:   fmt.Sprintf("%s", s),
 		}
 		err := r.p.client.Qualitygates.Deselect(deselectRequest)
 		if err != nil {
@@ -205,17 +192,20 @@ func (r resourceQualityGateSelection) Update(ctx context.Context, req tfsdk.Upda
 			)
 			return
 		}
+	}
+	for _, s := range sel {
 		selectRequest := qualitygates.SelectRequest{
 			GateId:       state.GateId.Value,
 			Organization: r.p.organization,
-			ProjectKey:   plan.ProjectKey.Value,
+			ProjectKey:   fmt.Sprintf("%s", s),
 		}
-		err = r.p.client.Qualitygates.Select(selectRequest)
+		err := r.p.client.Qualitygates.Select(selectRequest)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Could not Select the Quality Gate selection",
 				fmt.Sprintf("The Select request returned an error: %+v", err),
 			)
+			return
 		}
 	}
 
@@ -231,16 +221,42 @@ func (r resourceQualityGateSelection) Update(ctx context.Context, req tfsdk.Upda
 		)
 		return
 	}
-	var result Selection
-	for _, searchR := range res.Results {
-		if searchR.Id == state.ID.Value {
-			result = Selection{
-				ID:         types.Float64{Value: searchR.Id},
-				GateId:     types.String{Value: plan.GateId.Value},
-				ProjectKey: types.String{Value: searchR.Key},
-			}
+	if result, ok := findSelection(res, plan.ProjectKey.Elems); ok {
+		result.GateId = types.String{Value: state.GateId.Value}
+		diags = resp.State.Set(ctx, result)
+		resp.Diagnostics.Append(diags...)
+	} else {
+		resp.Diagnostics.AddError(
+			"Could not find Quality Gate Selection",
+			fmt.Sprintf("The findSelection function was unable to find the project keys: %+v in the response: %+v", plan.ProjectKey.Elems, res),
+		)
+		return
+	}
+}
+
+func diffSelection(state, plan Selection) (sel, rem []attr.Value) {
+	for _, old := range state.ProjectKey.Elems {
+		// assume that old is a string
+		if !containSelection(plan.ProjectKey.Elems, fmt.Sprintf("%s", old)) {
+			rem = append(rem, types.String{Value: fmt.Sprintf("%s", old)})
 		}
 	}
-	diags = resp.State.Set(ctx, result)
-	resp.Diagnostics.Append(diags...)
+	for _, new := range plan.ProjectKey.Elems {
+		// assume that new is a string
+		if !containSelection(state.ProjectKey.Elems, fmt.Sprintf("%s", new)) {
+			sel = append(sel, types.String{Value: fmt.Sprintf("%s", new)})
+		}
+	}
+
+	return sel, rem
+}
+
+// Check if a condition is contained in a condition list
+func containSelection(list []attr.Value, item string) bool {
+	for _, c := range list {
+		if c.Equal(types.String{Value: item}) {
+			return true
+		}
+	}
+	return false
 }

@@ -3,6 +3,7 @@ package sonarcloud
 import (
 	"math/big"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -139,4 +140,25 @@ func findQualityGate(response *qualitygates.ListResponse, name string) (QualityG
 		}
 	}
 	return result, ok
+}
+
+// findSelection returns a Selection{} struct with the given project keys if they exist in a response
+// this can be sped up using hashmaps, but I didn't feel like introducing a new dependency/taking code from somewhere.
+// Ex library: https://pkg.go.dev/github.com/juliangruber/go-intersect/v2
+func findSelection(response *qualitygates.SearchResponse, keys []attr.Value) (Selection, bool) {
+	projectKeys := make([]attr.Value, 0)
+	ok := true
+	for _, k := range keys {
+		ok = false
+		for _, s := range response.Results {
+			if k.Equal(types.String{Value: s.Key}) {
+				projectKeys = append(projectKeys, types.String{Value: s.Key})
+				ok = true
+				break
+			}
+		}
+	}
+	return Selection{
+		ProjectKey: types.Set{ElemType: types.StringType, Elems: projectKeys},
+	}, ok
 }
