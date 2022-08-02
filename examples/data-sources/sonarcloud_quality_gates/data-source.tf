@@ -1,1 +1,1 @@
-data sonarcloud_quality_gates "all" {}
+data "sonarcloud_quality_gates" "all" {}
