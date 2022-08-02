@@ -10,11 +10,11 @@ import (
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/qualitygates"
 )
 
-type dataSourceQualityGateType struct{}
+type dataSourceQualityGatesType struct{}
 
-func (d dataSourceQualityGateType) GetSchema(__ context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d dataSourceQualityGatesType) GetSchema(__ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
-		Description: "This data source retrieves a Quality Gate for the configured organization.",
+		Description: "This data source retrieves all Quality Gates for the configured organization.",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Type:        types.StringType,
@@ -48,7 +48,7 @@ func (d dataSourceQualityGateType) GetSchema(__ context.Context) (tfsdk.Schema, 
 					"is_built_in": {
 						Type:        types.BoolType,
 						Description: "Is this Quality gate built in?",
-						Optional:    true,
+						Computed:    true,
 					},
 					"conditions": {
 						Optional:    true,
@@ -88,17 +88,17 @@ func (d dataSourceQualityGateType) GetSchema(__ context.Context) (tfsdk.Schema, 
 	}, nil
 }
 
-func (d dataSourceQualityGateType) NewDataSource(_ context.Context, p tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+func (d dataSourceQualityGatesType) NewDataSource(_ context.Context, p tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
 	return dataSourceQualityGate{
 		p: *(p.(*provider)),
 	}, nil
 }
 
-type dataSourceQualityGate struct {
+type dataSourceQualityGates struct {
 	p provider
 }
 
-func (d dataSourceQualityGate) Read(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+func (d dataSourceQualityGates) Read(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
 	var diags diag.Diagnostics
 
 	request := qualitygates.ListRequest{}

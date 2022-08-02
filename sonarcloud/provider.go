@@ -101,7 +101,8 @@ func (p *provider) GetDataSources(_ context.Context) (map[string]tfsdk.DataSourc
 		"sonarcloud_user_group":         dataSourceUserGroupType{},
 		"sonarcloud_user_groups":        dataSourceUserGroupsType{},
 		"sonarcloud_user_group_members": dataSourceUserGroupMembersType{},
-		"sonarcloud_quality_gates":      dataSourceQualityGateType{},
+		"sonarcloud_quality_gate":       dataSourceQualityGateType{},
+		"sonarcloud_quality_gates":      dataSourceQualityGatesType{},
 	}, nil
 }
 
