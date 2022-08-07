@@ -151,6 +151,6 @@ func findSelection(response *qualitygates.SearchResponse, keys []attr.Value) (Se
 		}
 	}
 	return Selection{
-		ProjectKey: types.Set{ElemType: types.StringType, Elems: projectKeys},
+		ProjectKeys: types.Set{ElemType: types.StringType, Elems: projectKeys},
 	}, ok
 }

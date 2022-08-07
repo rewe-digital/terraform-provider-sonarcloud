@@ -30,7 +30,7 @@ func (r resourceQualityGateSelectionType) GetSchema(_ context.Context) (tfsdk.Sc
 					tfsdk.RequiresReplace(),
 				},
 			},
-			"project_key": {
+			"project_keys": {
 				Type:        types.SetType{ElemType: types.StringType},
 				Description: "The Keys of the projects which have been selected on the referenced quality gate",
 				Required:    true,
@@ -67,7 +67,7 @@ func (r resourceQualityGateSelection) Create(ctx context.Context, req tfsdk.Crea
 		return
 	}
 
-	for _, s := range plan.ProjectKey.Elems {
+	for _, s := range plan.ProjectKeys.Elems {
 		// Fill in api action struct for Quality Gates
 		request := qualitygates.SelectRequest{
 			GateId:       plan.GateId.Value,
@@ -99,7 +99,7 @@ func (r resourceQualityGateSelection) Create(ctx context.Context, req tfsdk.Crea
 		return
 	}
 
-	if result, ok := findSelection(res, plan.ProjectKey.Elems); ok {
+	if result, ok := findSelection(res, plan.ProjectKeys.Elems); ok {
 		result.GateId = types.String{Value: plan.GateId.Value}
 		result.ID = types.String{Value: plan.GateId.Value}
 		diags = resp.State.Set(ctx, result)
@@ -107,7 +107,7 @@ func (r resourceQualityGateSelection) Create(ctx context.Context, req tfsdk.Crea
 	} else {
 		resp.Diagnostics.AddError(
 			"Could not find Quality Gate Selection",
-			fmt.Sprintf("The findSelection function was unable to find the project keys: %+v in the response: %+v", plan.ProjectKey.Elems, res),
+			fmt.Sprintf("The findSelection function was unable to find the project keys: %+v in the response: %+v", plan.ProjectKeys.Elems, res),
 		)
 		return
 	}
@@ -133,7 +133,7 @@ func (r resourceQualityGateSelection) Read(ctx context.Context, req tfsdk.ReadRe
 		)
 		return
 	}
-	if result, ok := findSelection(res, state.ProjectKey.Elems); ok {
+	if result, ok := findSelection(res, state.ProjectKeys.Elems); ok {
 		result.GateId = types.String{Value: state.GateId.Value}
 		result.ID = types.String{Value: state.GateId.Value}
 		diags = resp.State.Set(ctx, result)
@@ -202,7 +202,7 @@ func (r resourceQualityGateSelection) Update(ctx context.Context, req tfsdk.Upda
 		)
 		return
 	}
-	if result, ok := findSelection(res, plan.ProjectKey.Elems); ok {
+	if result, ok := findSelection(res, plan.ProjectKeys.Elems); ok {
 		result.GateId = types.String{Value: state.GateId.Value}
 		result.ID = types.String{Value: state.GateId.Value}
 		diags = resp.State.Set(ctx, result)
@@ -210,7 +210,7 @@ func (r resourceQualityGateSelection) Update(ctx context.Context, req tfsdk.Upda
 	} else {
 		resp.Diagnostics.AddError(
 			"Could not find Quality Gate Selection",
-			fmt.Sprintf("The findSelection function was unable to find the project keys: %+v in the response: %+v", plan.ProjectKey.Elems, res),
+			fmt.Sprintf("The findSelection function was unable to find the project keys: %+v in the response: %+v", plan.ProjectKeys.Elems, res),
 		)
 		return
 	}
@@ -224,7 +224,7 @@ func (r resourceQualityGateSelection) Delete(ctx context.Context, req tfsdk.Dele
 		return
 	}
 
-	for _, s := range state.ProjectKey.Elems {
+	for _, s := range state.ProjectKeys.Elems {
 		request := qualitygates.DeselectRequest{
 			Organization: r.p.organization,
 			ProjectKey:   s.(types.String).Value,
@@ -243,7 +243,7 @@ func (r resourceQualityGateSelection) Delete(ctx context.Context, req tfsdk.Dele
 }
 
 func diffSelection(state, plan Selection) (sel, rem []attr.Value) {
-	for _, old := range state.ProjectKey.Elems {
+	for _, old := range state.s.Elems {
 		// assume that old is a string
 		if !containSelection(plan.ProjectKey.Elems, old.(types.String).Value) {
 			rem = append(rem, types.String{Value: old.(types.String).Value})
