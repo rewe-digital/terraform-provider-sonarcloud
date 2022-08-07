@@ -15,7 +15,7 @@ type resourceQualityGateSelectionType struct{}
 
 func (r resourceQualityGateSelectionType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
-		Description: "This resource selects a quality gate for a project",
+		Description: "This resource selects a quality gate for one or more projects",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Type:        types.StringType,
@@ -24,7 +24,7 @@ func (r resourceQualityGateSelectionType) GetSchema(_ context.Context) (tfsdk.Sc
 			},
 			"gate_id": {
 				Type:        types.StringType,
-				Description: "The ID of the quality gate that is selecting the project(s).",
+				Description: "The ID of the quality gate that is selected for the project(s).",
 				Required:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),

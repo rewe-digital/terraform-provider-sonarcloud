@@ -89,7 +89,7 @@ func (d dataSourceQualityGatesType) GetSchema(__ context.Context) (tfsdk.Schema,
 }
 
 func (d dataSourceQualityGatesType) NewDataSource(_ context.Context, p tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
-	return dataSourceQualityGate{
+	return dataSourceQualityGates{
 		p: *(p.(*provider)),
 	}, nil
 }
@@ -107,7 +107,7 @@ func (d dataSourceQualityGates) Read(ctx context.Context, req tfsdk.ReadDataSour
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Could not read the Quality Gate",
-			fmt.Sprintf("The SearchAll request returned an error: %+v", err),
+			fmt.Sprintf("The List request returned an error: %+v", err),
 		)
 		return
 	}
