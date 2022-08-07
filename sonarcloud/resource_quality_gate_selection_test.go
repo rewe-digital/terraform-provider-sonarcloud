@@ -30,7 +30,7 @@ func TestAccResourceQualityGateSelection(t *testing.T) {
 				Config: testAccQualityGateSelectionConfig(gate_id, project_key),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate_selection.test", "gate_id", gate_id),
-					resource.TestCheckResourceAttr("sonarcloud_quality_gate_selection.test", "project_key.0", project_key),
+					resource.TestCheckResourceAttr("sonarcloud_quality_gate_selection.test", "project_keys.0", project_key),
 				),
 			},
 		},
@@ -46,7 +46,7 @@ func testAccQualityGateSelectionConfig(gateId, projectKey string) string {
 	return fmt.Sprintf(`
 resource "sonarcloud_quality_gate_selection" "test" {
 	gate_id = "%s"
-	project_key = ["%s"]
+	project_keys = ["%s"]
 }
 	`, gateId, projectKey)
 }

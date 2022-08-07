@@ -243,15 +243,15 @@ func (r resourceQualityGateSelection) Delete(ctx context.Context, req tfsdk.Dele
 }
 
 func diffSelection(state, plan Selection) (sel, rem []attr.Value) {
-	for _, old := range state.s.Elems {
+	for _, old := range state.ProjectKeys.Elems {
 		// assume that old is a string
-		if !containSelection(plan.ProjectKey.Elems, old.(types.String).Value) {
+		if !containSelection(plan.ProjectKeys.Elems, old.(types.String).Value) {
 			rem = append(rem, types.String{Value: old.(types.String).Value})
 		}
 	}
-	for _, new := range plan.ProjectKey.Elems {
+	for _, new := range plan.ProjectKeys.Elems {
 		// assume that new is a string
-		if !containSelection(state.ProjectKey.Elems, new.(types.String).Value) {
+		if !containSelection(state.ProjectKeys.Elems, new.(types.String).Value) {
 			sel = append(sel, types.String{Value: new.(types.String).Value})
 		}
 	}
