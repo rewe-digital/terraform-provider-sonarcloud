@@ -100,7 +100,7 @@ func (d dataSourceQualityGate) Read(ctx context.Context, req tfsdk.ReadDataSourc
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Could not read the Quality Gate",
-			fmt.Sprintf("The SearchAll request returned an error: %+v", err),
+			fmt.Sprintf("The List request returned an error: %+v", err),
 		)
 		return
 	}

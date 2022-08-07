@@ -149,6 +149,9 @@ func findSelection(response *qualitygates.SearchResponse, keys []attr.Value) (Se
 				break
 			}
 		}
+		if !ok {
+		  break
+		}
 	}
 	return Selection{
 		ProjectKeys: types.Set{ElemType: types.StringType, Elems: projectKeys},
