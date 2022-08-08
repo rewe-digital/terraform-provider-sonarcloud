@@ -21,3 +21,6 @@ dist/
 
 # Debug output
 *.log
+
+# VSCode files
+**/.vscode/**

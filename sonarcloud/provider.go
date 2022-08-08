@@ -2,11 +2,12 @@ package sonarcloud
 
 import (
 	"context"
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud"
-	"os"
 )
 
 func New() tfsdk.Provider {
@@ -85,10 +86,12 @@ func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderReq
 
 func (p *provider) GetResources(_ context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
 	return map[string]tfsdk.ResourceType{
-		"sonarcloud_user_group":        resourceUserGroupType{},
-		"sonarcloud_user_group_member": resourceUserGroupMemberType{},
-		"sonarcloud_project":           resourceProjectType{},
-		"sonarcloud_user_token":        resourceUserTokenType{},
+		"sonarcloud_user_group":             resourceUserGroupType{},
+		"sonarcloud_user_group_member":      resourceUserGroupMemberType{},
+		"sonarcloud_project":                resourceProjectType{},
+		"sonarcloud_user_token":             resourceUserTokenType{},
+		"sonarcloud_quality_gate":           resourceQualityGateType{},
+		"sonarcloud_quality_gate_selection": resourceQualityGateSelectionType{},
 	}, nil
 }
 
@@ -98,6 +101,8 @@ func (p *provider) GetDataSources(_ context.Context) (map[string]tfsdk.DataSourc
 		"sonarcloud_user_group":         dataSourceUserGroupType{},
 		"sonarcloud_user_groups":        dataSourceUserGroupsType{},
 		"sonarcloud_user_group_members": dataSourceUserGroupMembersType{},
+		"sonarcloud_quality_gate":       dataSourceQualityGateType{},
+		"sonarcloud_quality_gates":      dataSourceQualityGatesType{},
 	}, nil
 }
 

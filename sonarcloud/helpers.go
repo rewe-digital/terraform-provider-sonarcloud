@@ -1,14 +1,19 @@
 package sonarcloud
 
 import (
+	"fmt"
+	"math/big"
+	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/projects"
+	"github.com/reinoudk/go-sonarcloud/sonarcloud/qualitygates"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_groups"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_tokens"
-	"math/big"
 )
 
 // changedAttrs returns a map where the keys are the names of all the attributes that were changed
@@ -99,4 +104,56 @@ func findProject(response *projects.SearchResponseAll, key string) (Project, boo
 		}
 	}
 	return result, ok
+}
+
+// findQualityGate returns the quality gate with the given name if it exists in a response
+func findQualityGate(response *qualitygates.ListResponse, name string) (QualityGate, bool) {
+	var result QualityGate
+	ok := false
+	for _, q := range response.Qualitygates {
+		if q.Name == name {
+			result = QualityGate{
+				ID:        types.String{Value: fmt.Sprintf("%d", int(q.Id))},
+				GateId:    types.Float64{Value: q.Id},
+				Name:      types.String{Value: q.Name},
+				IsBuiltIn: types.Bool{Value: q.IsBuiltIn},
+				IsDefault: types.Bool{Value: q.IsDefault},
+			}
+			for _, c := range q.Conditions {
+				result.Conditions = append(result.Conditions, Condition{
+					Error:  types.String{Value: c.Error},
+					ID:     types.Float64{Value: c.Id},
+					Metric: types.String{Value: c.Metric},
+					Op:     types.String{Value: c.Op},
+				})
+			}
+			ok = true
+			break
+		}
+	}
+	return result, ok
+}
+
+// findSelection returns a Selection{} struct with the given project keys if they exist in a response
+// this can be sped up using hashmaps, but I didn't feel like introducing a new dependency/taking code from somewhere.
+// Ex library: https://pkg.go.dev/github.com/juliangruber/go-intersect/v2
+func findSelection(response *qualitygates.SearchResponse, keys []attr.Value) (Selection, bool) {
+	projectKeys := make([]attr.Value, 0)
+	ok := true
+	for _, k := range keys {
+		ok = false
+		for _, s := range response.Results {
+			if k.Equal(types.String{Value: s.Key}) {
+				projectKeys = append(projectKeys, types.String{Value: strings.Trim(s.Key, "\"")})
+				ok = true
+				break
+			}
+		}
+		if !ok {
+		  break
+		}
+	}
+	return Selection{
+		ProjectKeys: types.Set{ElemType: types.StringType, Elems: projectKeys},
+	}, ok
 }
