@@ -3,11 +3,11 @@ package sonarcloud
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/projects"
 )
 
@@ -243,5 +243,5 @@ func (r resourceProject) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 }
 
 func (r resourceProject) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-	tfsdk.ResourceImportStatePassthroughID(ctx, tftypes.NewAttributePath().WithAttributeName("key"), req, resp)
+	tfsdk.ResourceImportStatePassthroughID(ctx, path.Root("key"), req, resp)
 }
