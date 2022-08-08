@@ -12,6 +12,6 @@ import (
 
 func main() {
 	providerserver.Serve(context.Background(), sonarcloud.New, providerserver.ServeOpts{
-		Address: "sonarcloud",
+		Address: "registry.terraform.io/rewe-digital/sonarcloud",
 	})
 }
