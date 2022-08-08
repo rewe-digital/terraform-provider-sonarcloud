@@ -45,6 +45,6 @@ Acceptance tests also rely on the following preconfigured SonarCloud Resources:
 | `SONARCLOUD_TEST_USER_LOGIN` | The login for testing `sonarcloud_user_group_member`. Must be an existing member of the org and in the form of `<github_handle>@github` if you have imported the user via GitHub. |
 | `SONARCLOUD_TEST_GROUP_NAME` | The name of an existing group to which the test-user will be added and removed from. | 
 | `SONARCLOUD_TOKEN_TEST_USER_LOGIN` | The login for testing `sonarcloud_user_token`. This must be the login that also has the existing `SONARCLOUD_TOKEN`. |
-| `SONARCLOUD_PROJECT_KEY` | The Key of a test `project` for testing `sonarcloud_quality_gate_selection`. |
-| `SONARCLOUD_QUALITY_GATE_ID` | The `Gate_Id` of a test `Quality Gate` for testing `sonarcloud_qualtiy_gate_selection`. |
- 
+| `SONARCLOUD_PROJECT_KEY` | The Key of a test `project` for testing the `sonarcloud_quality_gate_selection` resource. |
+| `SONARCLOUD_QUALITY_GATE_ID` | The `GateId` of a test `Quality Gate` for testing `sonarcloud_qualtiy_gate_selection` resource. |
+| `SONARCLOUD_QUALITY_GATE_NAME` | The `name` of a test `Quality Gate` for testing the `sonarcloud_qualtiy_gate` data source. |
