@@ -28,15 +28,15 @@ resource "sonarcloud_user_group_member" "example_member" {
 
 ### Required
 
-- **login** (String) The login of the user that should be added to the group.
+- `login` (String) The login of the user that should be added to the group.
 
 ### Optional
 
-- **group** (String) The name of the group to which the user should be added.
+- `group` (String) The name of the group to which the user should be added.
 
 ### Read-Only
 
-- **id** (String) The ID of this resource.
+- `id` (String) The ID of this resource.
 
 ## Import
 

@@ -24,16 +24,16 @@ resource "sonarcloud_user_group" "example_group" {
 
 ### Required
 
-- **name** (String) The name of the user group.
+- `name` (String) The name of the user group.
 
 ### Optional
 
-- **description** (String) The description for the user group.
+- `description` (String) The description for the user group.
 
 ### Read-Only
 
-- **default** (Boolean) Whether the group is the default group or not.
-- **id** (String) The ID of this resource.
-- **members_count** (Number) The number of members this group has.
+- `default` (Boolean) Whether the group is the default group or not.
+- `id` (String) The ID of this resource.
+- `members_count` (Number) The number of members this group has.
 
 

@@ -25,17 +25,17 @@ data "sonarcloud_user_group_members" "members" {
 
 ### Required
 
-- **group** (String) The name of the group.
+- `group` (String) The name of the group.
 
 ### Read-Only
 
-- **id** (String) The ID of this resource.
-- **users** (Attributes List) The users of the group. (see [below for nested schema](#nestedatt--users))
+- `id` (String) The ID of this resource.
+- `users` (Attributes List) The users of the group. (see [below for nested schema](#nestedatt--users))
 
 <a id="nestedatt--users"></a>
 ### Nested Schema for `users`
 
 Read-Only:
 
-- **login** (String) The login of this user
-- **name** (String) The name of this user
+- `login` (String) The login of this user
+- `name` (String) The name of this user

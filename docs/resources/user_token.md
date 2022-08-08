@@ -24,12 +24,12 @@ resource "sonarcloud_user_token" "test_token" {
 
 ### Required
 
-- **login** (String) The login of the user to which the token should be added. This should be the same user as configured in the provider.
-- **name** (String) The name of the token.
+- `login` (String) The login of the user to which the token should be added. This should be the same user as configured in the provider.
+- `name` (String) The name of the token.
 
 ### Read-Only
 
-- **id** (String) The ID of this resource.
-- **token** (String, Sensitive) The value of the generated token.
+- `id` (String) The ID of this resource.
+- `token` (String, Sensitive) The value of the generated token.
 
 

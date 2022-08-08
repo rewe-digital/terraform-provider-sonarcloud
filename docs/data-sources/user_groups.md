@@ -21,18 +21,18 @@ data "sonarcloud_user_groups" "all" {}
 
 ### Read-Only
 
-- **groups** (Attributes List) The groups of this organization. (see [below for nested schema](#nestedatt--groups))
-- **id** (String) The ID of this resource.
+- `groups` (Attributes List) The groups of this organization. (see [below for nested schema](#nestedatt--groups))
+- `id` (String) The ID of this resource.
 
 <a id="nestedatt--groups"></a>
 ### Nested Schema for `groups`
 
 Read-Only:
 
-- **default** (Boolean) Whether new members are added to this user group per default or not.
-- **description** (String) The description of the user group.
-- **id** (String) The ID of the user group.
-- **members_count** (Number) The number of members in this user group.
-- **name** (String) The name of the user group.
+- `default` (Boolean) Whether new members are added to this user group per default or not.
+- `description` (String) The description of the user group.
+- `id` (String) The ID of the user group.
+- `members_count` (Number) The number of members in this user group.
+- `name` (String) The name of the user group.
 
 

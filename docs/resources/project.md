@@ -25,15 +25,15 @@ resource "sonarcloud_project" "example_project" {
 
 ### Required
 
-- **key** (String) The key of the project. **Warning**: must be globally unique.
-- **name** (String) The name of the project. **Warning:** forces project recreation when changed.
+- `key` (String) The key of the project. **Warning**: must be globally unique.
+- `name` (String) The name of the project. **Warning:** forces project recreation when changed.
 
 ### Optional
 
-- **visibility** (String) The visibility of the project. Use `private` to only share it with your organization. Use `public` if the project should be visible to everyone. Defaults to the organization's default visibility. **Note:** private projects are only available when you have a SonarCloud subscription.
+- `visibility` (String) The visibility of the project. Use `private` to only share it with your organization. Use `public` if the project should be visible to everyone. Defaults to the organization's default visibility. **Note:** private projects are only available when you have a SonarCloud subscription.
 
 ### Read-Only
 
-- **id** (String) The ID of this resource.
+- `id` (String) The ID of this resource.
 
 

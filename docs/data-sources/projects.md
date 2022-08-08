@@ -21,17 +21,20 @@ data "sonarcloud_projects" "all" {}
 
 ### Read-Only
 
-- **id** (String) The ID of this resource.
-- **projects** (Attributes List) The projects of this organization. (see [below for nested schema](#nestedatt--projects))
+- `id` (String) The ID of this resource.
+- `projects` (Attributes List) The projects of this organization. (see [below for nested schema](#nestedatt--projects))
 
 <a id="nestedatt--projects"></a>
 ### Nested Schema for `projects`
 
+Required:
+
+- `key` (String) The key of the project.
+
 Read-Only:
 
-- **id** (String) ID of the project. Equals to the project name.
-- **key** (String) The key of the project.
-- **name** (String) The name of the project.
-- **visibility** (String) The visibility of the project.
+- `id` (String) ID of the project. Equals to the project name.
+- `name` (String) The name of the project.
+- `visibility` (String) The visibility of the project.
 
 
