@@ -6,13 +6,13 @@ resource "sonarcloud_quality_gate" "awesome" {
     {
       metric = "coverage"
       error  = 100
-      Op     = "LT"
+      op     = "LT"
     },
     // Less than 100% coverage on new code
     {
       metric = "new_coverage"
       error  = 100
-      Op     = "LT"
+      op     = "LT"
     }
   ]
 
