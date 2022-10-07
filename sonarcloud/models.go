@@ -51,6 +51,12 @@ type Project struct {
 	Visibility types.String `tfsdk:"visibility"`
 }
 
+type ProjectMainBranch struct {
+	ID         types.String `tfsdk:"id"`
+	Name       types.String `tfsdk:"name"`
+	ProjectKey types.String `tfsdk:"project_key"`
+}
+
 type Condition struct {
 	Error  types.String  `tfsdk:"error"`
 	ID     types.Float64 `tfsdk:"id"`
@@ -78,7 +84,7 @@ type QualityGates struct {
 }
 
 type Selection struct {
-	ID         types.String `tfsdk:"id"`
-	GateId     types.String `tfsdk:"gate_id"`
+	ID          types.String `tfsdk:"id"`
+	GateId      types.String `tfsdk:"gate_id"`
 	ProjectKeys types.Set    `tfsdk:"project_keys"`
 }

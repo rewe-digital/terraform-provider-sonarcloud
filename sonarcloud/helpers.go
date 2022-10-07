@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/reinoudk/go-sonarcloud/sonarcloud/project_branches"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/projects"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/qualitygates"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/user_groups"
@@ -106,6 +107,24 @@ func findProject(response *projects.SearchResponseAll, key string) (Project, boo
 	return result, ok
 }
 
+// findProjectMainBranch returns the main branch with the given name if it exists in the response
+func findProjectMainBranch(response *project_branches.ListResponse, name, projectKey string) (ProjectMainBranch, bool) {
+	var result ProjectMainBranch
+	ok := false
+	for _, p := range response.Branches {
+		if p.Name == name && p.IsMain {
+			result = ProjectMainBranch{
+				ID:         types.String{Value: p.Name},
+				Name:       types.String{Value: p.Name},
+				ProjectKey: types.String{Value: projectKey},
+			}
+			ok = true
+			break
+		}
+	}
+	return result, ok
+}
+
 // findQualityGate returns the quality gate with the given name if it exists in a response
 func findQualityGate(response *qualitygates.ListResponse, name string) (QualityGate, bool) {
 	var result QualityGate
@@ -150,7 +169,7 @@ func findSelection(response *qualitygates.SearchResponse, keys []attr.Value) (Se
 			}
 		}
 		if !ok {
-		  break
+			break
 		}
 	}
 	return Selection{
