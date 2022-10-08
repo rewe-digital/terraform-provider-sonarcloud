@@ -16,7 +16,11 @@ type resourceProjectMainBranchType struct{}
 
 func (r resourceProjectMainBranchType) GetSchema(_ context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
-		Description: "This resource manages a project main branch.",
+		Description: `This resource manages a project main branch.
+
+Note that certain operations, such as the deletion of a project's main branch configuration, may
+not be permitted by the SonarCloud web API, or may require admin permissions.
+		`,
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Type:     types.StringType,
@@ -175,7 +179,7 @@ func (r resourceProjectMainBranch) Delete(ctx context.Context, req tfsdk.DeleteR
 		return
 	}
 
-	// TODO: according to docs, this may not work for main branches, and may require admin privilege
+	// NOTE: according to docs, this may not work for main branches, and may require admin privilege
 	// https://github.com/reinoudk/go-sonarcloud/blob/main/sonarcloud/project_branches/project_branches_gen.go#L5
 	request := project_branches.DeleteRequest{
 		Project: state.ProjectKey.Value,
