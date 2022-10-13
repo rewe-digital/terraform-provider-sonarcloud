@@ -179,22 +179,8 @@ func (r resourceProjectMainBranch) Delete(ctx context.Context, req tfsdk.DeleteR
 		return
 	}
 
-	// NOTE: according to docs, this may not work for main branches, and may require admin privilege
-	// https://github.com/reinoudk/go-sonarcloud/blob/main/sonarcloud/project_branches/project_branches_gen.go#L5
-	request := project_branches.DeleteRequest{
-		Project: state.ProjectKey.Value,
-		Branch:  state.Name.Value,
-	}
-
-	err := r.p.client.ProjectBranches.Delete(request)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Could not delete the project main branch",
-			fmt.Sprintf("The Delete request returned an error: %+v", err),
-		)
-		return
-	}
-
+	// NOTE: according to docs, it's not possible to DELETE main branches, at least not without admin privilege
+	// Therefore, we simply remove the main branch from state, per recommendation of @reinoudk.
 	resp.State.RemoveResource(ctx)
 }
 
