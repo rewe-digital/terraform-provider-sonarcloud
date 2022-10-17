@@ -30,9 +30,6 @@ not be permitted by the SonarCloud web API, or may require admin permissions.
 				Type:        types.StringType,
 				Required:    true,
 				Description: "The name of the project main branch.",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					tfsdk.RequiresReplace(),
-				},
 				Validators: []tfsdk.AttributeValidator{
 					stringLengthBetween(1, 255),
 				},
@@ -43,6 +40,9 @@ not be permitted by the SonarCloud web API, or may require admin permissions.
 				Description: "The key of the project.",
 				Validators: []tfsdk.AttributeValidator{
 					stringLengthBetween(1, 400),
+				},
+				PlanModifiers: tfsdk.AttributePlanModifiers{
+					tfsdk.RequiresReplace(),
 				},
 			},
 		},
@@ -146,18 +146,13 @@ func (r resourceProjectMainBranch) Update(ctx context.Context, req tfsdk.UpdateR
 		return
 	}
 
-	projectKey := state.ProjectKey.Value
-	if _, ok := changed["project_key"]; ok {
-		projectKey = plan.ProjectKey.Value
-	}
-
 	name := state.Name.Value
 	if _, ok := changed["name"]; ok {
 		name = plan.Name.Value
 	}
 
 	request := project_branches.RenameRequest{
-		Project: projectKey,
+		Project: plan.ProjectKey.Value,
 		Name:    name,
 	}
 
