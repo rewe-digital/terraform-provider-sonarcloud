@@ -50,7 +50,7 @@ not be permitted by the SonarCloud web API, or may require admin permissions.
 }
 
 func (r resourceProjectMainBranchType) NewResource(_ context.Context, p tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
-	return resourceProject{
+	return resourceProjectMainBranch{
 		p: *(p.(*provider)),
 	}, nil
 }
