@@ -47,12 +47,12 @@ func testAccProjectMainBranchConfig(project, branchName string) string {
 resource "sonarcloud_project" "test" {
 	name = "%s"
 	key = "%s"
-	visibility = "public"
+	visibility = "visible"
 }
 
 resource "sonarcloud_project_main_branch" "test" {
-	name = "%s"
+	name = sonarcloud_project.test.name
 	project_key = "%s"
 }
-`, project, project, branchName, project)
+`, project, project, branchName)
 }
