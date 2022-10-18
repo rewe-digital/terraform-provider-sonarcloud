@@ -51,8 +51,8 @@ resource "sonarcloud_project" "test" {
 }
 
 resource "sonarcloud_project_main_branch" "test" {
-	name = sonarcloud_project.test.name
-	project_key = "%s"
+	name = "%s"
+	project_key = sonarcloud_project.test.key
 }
 `, project, project, branchName)
 }
