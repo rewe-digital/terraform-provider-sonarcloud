@@ -47,7 +47,7 @@ func testAccProjectMainBranchConfig(project, branchName string) string {
 resource "sonarcloud_project" "test" {
 	name = "%s"
 	key = "%s"
-	visibility = "visible"
+	visibility = "public"
 }
 
 resource "sonarcloud_project_main_branch" "test" {
