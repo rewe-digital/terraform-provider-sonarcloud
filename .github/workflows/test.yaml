@@ -19,3 +19,27 @@ jobs:
 
       - name: Unit tests
         run: make test
+
+  acceptance-tests:
+    runs-on: ubuntu-latest
+    concurrency: acceptance-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.17'
+
+      - name: Acceptance tests
+        run: make testacc
+        env:
+          TF_ACC: "true"
+          SONARCLOUD_ORGANIZATION: ${{ secrets.ACC_TEST_SONARCLOUD_ORGANIZATION }}
+          SONARCLOUD_TOKEN: ${{ secrets.ACC_TEST_SONARCLOUD_TOKEN }}
+          SONARCLOUD_TEST_USER_LOGIN: ${{ secrets.ACC_TEST_SONARCLOUD_TEST_USER_LOGIN }}
+          SONARCLOUD_TEST_GROUP_NAME: "TEST_DONT_REMOVE"
+          SONARCLOUD_TOKEN_TEST_USER_LOGIN: ${{ secrets.ACC_TEST_SONARCLOUD_TOKEN_TEST_USER_LOGIN }}
+          SONARCLOUD_PROJECT_KEY: ${{ secrets.ACC_TEST_SONARCLOUD_PROJECT_KEY }}
+          SONARCLOUD_QUALITY_GATE_NAME: "TEST"
+          SONARCLOUD_QUALITY_GATE_ID: ${{ secrets.ACC_TEST_SONARCLOUD_QUALITY_GATE_ID }}
