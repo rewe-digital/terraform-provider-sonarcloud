@@ -90,6 +90,15 @@ func (r resourceProjectMainBranch) Create(ctx context.Context, req tfsdk.CreateR
 		)
 		return
 	}
+
+	var result = ProjectMainBranch{
+		ID:         types.String{Value: plan.Name.Value},
+		Name:       types.String{Value: plan.Name.Value},
+		ProjectKey: types.String{Value: plan.ProjectKey.Value},
+	}
+	diags = resp.State.Set(ctx, result)
+
+	resp.Diagnostics.Append(diags...)
 }
 
 func (r resourceProjectMainBranch) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
@@ -146,14 +155,15 @@ func (r resourceProjectMainBranch) Update(ctx context.Context, req tfsdk.UpdateR
 		return
 	}
 
-	name := state.Name.Value
-	if _, ok := changed["name"]; ok {
-		name = plan.Name.Value
+	if _, ok := changed["name"]; !ok {
+		resp.Diagnostics.AddError(
+			"Name from plan does not differ from state.",
+			"This should not be possible and indicates an issue with the provider. Please contact the developers.")
 	}
 
 	request := project_branches.RenameRequest{
 		Project: plan.ProjectKey.Value,
-		Name:    name,
+		Name:    plan.Name.Value,
 	}
 
 	err := r.p.client.ProjectBranches.Rename(request)
@@ -164,6 +174,19 @@ func (r resourceProjectMainBranch) Update(ctx context.Context, req tfsdk.UpdateR
 		)
 		return
 	}
+
+	// In the absence of an error we assume that the main project branch was updated.
+	// The alternative would be to query the API again to verify this.
+	// (The rename-response does not have a return value.)
+	// As the API seems to be eventually consistent, this results in flaky behaviour, so we just keep it simple for now.
+	var result = ProjectMainBranch{
+		ID:         types.String{Value: plan.Name.Value},
+		Name:       types.String{Value: plan.Name.Value},
+		ProjectKey: types.String{Value: plan.ProjectKey.Value},
+	}
+	diags = resp.State.Set(ctx, result)
+
+	resp.Diagnostics.Append(diags...)
 }
 
 func (r resourceProjectMainBranch) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
