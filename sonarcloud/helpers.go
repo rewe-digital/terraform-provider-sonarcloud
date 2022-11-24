@@ -176,3 +176,16 @@ func findSelection(response *qualitygates.SearchResponse, keys []attr.Value) (Se
 		ProjectKeys: types.Set{ElemType: types.StringType, Elems: projectKeys},
 	}, ok
 }
+
+// findGroupPermissions returns a list of permissions for the given group, if that group exists in the group
+func findGroupPermissions(groups []PermissionsSearchResponseGroup, group string) ([]string, bool) {
+	permissions := make([]string, 0)
+	ok := false
+	for _, k := range groups {
+		if k.Name == group {
+			permissions = k.Permissions
+			ok = true
+		}
+	}
+	return permissions, ok
+}
