@@ -60,11 +60,11 @@ func allowedOptions(options ...string) *allowedOptionsValidator {
 }
 
 func (v allowedOptionsValidator) Description(_ context.Context) string {
-	return fmt.Sprintf("string length must be one of %v", v.Options)
+	return fmt.Sprintf("option must be one of %v", v.Options)
 }
 
 func (v allowedOptionsValidator) MarkdownDescription(_ context.Context) string {
-	return fmt.Sprintf("string length must be one of `%v`", v.Options)
+	return fmt.Sprintf("option must be one of `%v`", v.Options)
 }
 
 func (v allowedOptionsValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
@@ -95,5 +95,58 @@ func (v allowedOptionsValidator) Validate(ctx context.Context, req tfsdk.Validat
 		)
 
 		return
+	}
+}
+
+type allowedSetOptionsValidator struct {
+	Options []string
+}
+
+func allowedSetOptions(options ...string) *allowedSetOptionsValidator {
+	return &allowedSetOptionsValidator{Options: options}
+}
+
+func (v allowedSetOptionsValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("value in set must be one of %v", v.Options)
+}
+
+func (v allowedSetOptionsValidator) MarkdownDescription(_ context.Context) string {
+	return fmt.Sprintf("value in set must be one of `%v`", v.Options)
+}
+
+func (v allowedSetOptionsValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+	var set types.Set
+	diags := tfsdk.ValueAs(ctx, req.AttributeConfig, &set)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() {
+		return
+	}
+
+	if set.Unknown || set.Null {
+		return
+	}
+
+	var values []string
+	diags = set.ElementsAs(ctx, &values, true)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() {
+		return
+	}
+
+	options := make(map[string]struct{})
+	for _, option := range v.Options {
+		options[option] = struct{}{}
+	}
+
+	for _, val := range values {
+		if _, ok := options[val]; !ok {
+			resp.Diagnostics.AddAttributeError(
+				req.AttributePath,
+				"Invalid String Element in Set",
+				fmt.Sprintf("Element must be one of %v, got: %s.", v.Options, val),
+			)
+
+			return
+		}
 	}
 }

@@ -88,3 +88,10 @@ type Selection struct {
 	GateId      types.String `tfsdk:"gate_id"`
 	ProjectKeys types.Set    `tfsdk:"project_keys"`
 }
+
+type UserGroupPermissions struct {
+	ID          types.String `tfsdk:"id"`
+	ProjectKey  types.String `tfsdk:"project_key"`
+	Group       types.String `tfsdk:"group"`
+	Permissions types.Set    `tfsdk:"permissions"`
+}
