@@ -95,3 +95,12 @@ type UserGroupPermissions struct {
 	Group       types.String `tfsdk:"group"`
 	Permissions types.Set    `tfsdk:"permissions"`
 }
+
+type UserPermissions struct {
+	ID          types.String `tfsdk:"id"`
+	ProjectKey  types.String `tfsdk:"project_key"`
+	Login       types.String `tfsdk:"login"`
+	Name        types.String `tfsdk:"name"`
+	Permissions types.Set    `tfsdk:"permissions"`
+	Avatar      types.String `tfsdk:"avatar"`
+}
