@@ -2,8 +2,10 @@ package sonarcloud
 
 import (
 	"fmt"
+	"github.com/cenkalti/backoff/v4"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -188,4 +190,28 @@ func findGroupPermissions(groups []PermissionsSearchResponseGroup, group string)
 		}
 	}
 	return permissions, ok
+}
+
+// findUser returns the user with the given login, if it exists
+func findUser(users []UserPermissionsSearchResponseUser, login string) (*UserPermissionsSearchResponseUser, bool) {
+	for _, user := range users {
+		if user.Login == login {
+			return &user, true
+		}
+	}
+	return nil, false
+}
+
+// terraformListString returns the list of items in terraform list notation
+func terraformListString(items []string) string {
+	return fmt.Sprintf(`["%s"]`, strings.Join(items, `","`))
+}
+
+// defaultBackendConfig returns an exponential backoff with a timeout of 30 seconds instead of the module's default of 15 minutes
+func defaultBackoffConfig() *backoff.ExponentialBackOff {
+	backoffConfig := backoff.NewExponentialBackOff()
+	backoffConfig.MaxInterval = 10 * time.Second
+	backoffConfig.MaxElapsedTime = 30 * time.Second
+	backoffConfig.InitialInterval = 250 * time.Millisecond
+	return backoffConfig
 }
