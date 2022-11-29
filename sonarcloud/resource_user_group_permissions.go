@@ -132,8 +132,8 @@ func (r resourceUserGroupPermissions) Create(ctx context.Context, req tfsdk.Crea
 	}
 
 	// Query for permissions
-	searchRequest := PermissionsSearchRequest{ProjectKey: plan.ProjectKey.Value}
-	groups, err := sonarcloud.GetAll[PermissionsSearchRequest, PermissionsSearchResponseGroup](r.p.client, "/permissions/groups", searchRequest, "groups")
+	searchRequest := UserGroupPermissionsSearchRequest{ProjectKey: plan.ProjectKey.Value}
+	groups, err := sonarcloud.GetAll[UserGroupPermissionsSearchRequest, UserGroupPermissionsSearchResponseGroup](r.p.client, "/permissions/groups", searchRequest, "groups")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Could not get user group permissions",
@@ -175,8 +175,8 @@ func (r resourceUserGroupPermissions) Read(ctx context.Context, req tfsdk.ReadRe
 	}
 
 	// Query for permissions
-	searchRequest := PermissionsSearchRequest{ProjectKey: state.ProjectKey.Value}
-	groups, err := sonarcloud.GetAll[PermissionsSearchRequest, PermissionsSearchResponseGroup](r.p.client, "/permissions/groups", searchRequest, "groups")
+	searchRequest := UserGroupPermissionsSearchRequest{ProjectKey: state.ProjectKey.Value}
+	groups, err := sonarcloud.GetAll[UserGroupPermissionsSearchRequest, UserGroupPermissionsSearchResponseGroup](r.p.client, "/permissions/groups", searchRequest, "groups")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Could not get user group permissions",
@@ -255,8 +255,8 @@ func (r resourceUserGroupPermissions) Update(ctx context.Context, req tfsdk.Upda
 	}
 
 	// Query for permissions
-	searchRequest := PermissionsSearchRequest{ProjectKey: plan.ProjectKey.Value}
-	groups, err := sonarcloud.GetAll[PermissionsSearchRequest, PermissionsSearchResponseGroup](r.p.client, "/permissions/groups", searchRequest, "groups")
+	searchRequest := UserGroupPermissionsSearchRequest{ProjectKey: plan.ProjectKey.Value}
+	groups, err := sonarcloud.GetAll[UserGroupPermissionsSearchRequest, UserGroupPermissionsSearchResponseGroup](r.p.client, "/permissions/groups", searchRequest, "groups")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Could not get user group permissions",
@@ -317,11 +317,11 @@ func (r resourceUserGroupPermissions) Delete(ctx context.Context, req tfsdk.Dele
 	resp.State.RemoveResource(ctx)
 }
 
-type PermissionsSearchRequest struct {
+type UserGroupPermissionsSearchRequest struct {
 	ProjectKey string
 }
 
-type PermissionsSearchResponseGroup struct {
+type UserGroupPermissionsSearchResponseGroup struct {
 	Id          string   `json:"id,omitempty"`
 	Name        string   `json:"name,omitempty"`
 	Description string   `json:"description,omitempty"`

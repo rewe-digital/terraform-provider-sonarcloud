@@ -180,7 +180,7 @@ func findSelection(response *qualitygates.SearchResponse, keys []attr.Value) (Se
 }
 
 // findGroupPermissions returns a list of permissions for the given group, if that group exists in the group
-func findGroupPermissions(groups []PermissionsSearchResponseGroup, group string) ([]string, bool) {
+func findGroupPermissions(groups []UserGroupPermissionsSearchResponseGroup, group string) ([]string, bool) {
 	permissions := make([]string, 0)
 	ok := false
 	for _, k := range groups {
