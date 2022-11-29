@@ -110,6 +110,19 @@ type UserGroupPermissions struct {
 	Permissions types.Set    `tfsdk:"permissions"`
 }
 
+type DataUserPermissionsUser struct {
+	Login       types.String `tfsdk:"login"`
+	Name        types.String `tfsdk:"name"`
+	Permissions types.Set    `tfsdk:"permissions"`
+	Avatar      types.String `tfsdk:"avatar"`
+}
+
+type DataUserPermissions struct {
+	ID         types.String              `tfsdk:"id"`
+	ProjectKey types.String              `tfsdk:"project_key"`
+	Users      []DataUserPermissionsUser `tfsdk:"users"`
+}
+
 type UserPermissions struct {
 	ID          types.String `tfsdk:"id"`
 	ProjectKey  types.String `tfsdk:"project_key"`
