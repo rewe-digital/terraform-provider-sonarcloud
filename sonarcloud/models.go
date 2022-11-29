@@ -89,6 +89,19 @@ type Selection struct {
 	ProjectKeys types.Set    `tfsdk:"project_keys"`
 }
 
+type DataUserGroupPermissionsGroup struct {
+	ID          types.String `tfsdk:"id"`
+	Name        types.String `tfsdk:"name"`
+	Description types.String `tfsdk:"description"`
+	Permissions types.Set    `tfsdk:"permissions"`
+}
+
+type DataUserGroupPermissions struct {
+	ID         types.String                    `tfsdk:"id"`
+	ProjectKey types.String                    `tfsdk:"project_key"`
+	Groups     []DataUserGroupPermissionsGroup `tfsdk:"groups"`
+}
+
 type UserGroupPermissions struct {
 	ID          types.String `tfsdk:"id"`
 	ProjectKey  types.String `tfsdk:"project_key"`
