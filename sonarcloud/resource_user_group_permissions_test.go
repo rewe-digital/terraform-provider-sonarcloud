@@ -11,7 +11,7 @@ import (
 
 func TestAccUserGroupPermissions(t *testing.T) {
 	project := os.Getenv("SONARCLOUD_PROJECT_KEY")
-	group := os.Getenv("SONARCLOUD_TEST_GROUP_NAME")
+	name := os.Getenv("SONARCLOUD_TEST_GROUP_NAME")
 
 	// Possible values for global permissions: admin, profileadmin, gateadmin, scan, provisioning
 	// Possible values for project permissions admin, codeviewer, issueadmin, securityhotspotadmin, scan, user
@@ -22,66 +22,67 @@ func TestAccUserGroupPermissions(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPermissionConfig("", group, []string{
+				Config: testAccPermissionConfig("", name, []string{
 					"provisioning",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", ""),
-					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "group", group),
+					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "name", name),
+					resource.TestCheckResourceAttrSet("sonarcloud_user_group_permissions.test_permission", "description"),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "provisioning"),
 				),
 			},
 			{
-				Config: testAccPermissionConfig("", group, []string{
+				Config: testAccPermissionConfig("", name, []string{
 					"provisioning",
 					"scan",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", ""),
-					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "group", group),
+					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "name", name),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "provisioning"),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.1", "scan"),
 				),
 			},
 			{
-				Config: testAccPermissionConfig("", group, []string{
+				Config: testAccPermissionConfig("", name, []string{
 					"scan",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", ""),
-					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "group", group),
+					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "name", name),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "scan"),
 				),
 			},
 			{
-				Config: testAccPermissionConfig(project, group, []string{
+				Config: testAccPermissionConfig(project, name, []string{
 					"admin",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", project),
-					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "group", group),
+					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "name", name),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "admin"),
 				),
 			},
 			{
-				Config: testAccPermissionConfig(project, group, []string{
+				Config: testAccPermissionConfig(project, name, []string{
 					"issueadmin",
 					"scan",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", project),
-					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "group", group),
+					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "name", name),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "issueadmin"),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.1", "scan"),
 				),
 			},
 			{
-				Config: testAccPermissionConfig(project, group, []string{
+				Config: testAccPermissionConfig(project, name, []string{
 					"scan",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", project),
-					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "group", group),
+					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "name", name),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "scan"),
 				),
 			},
@@ -94,14 +95,14 @@ func testAccPermissionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccPermissionConfig(project string, group string, permissions []string) string {
+func testAccPermissionConfig(project string, name string, permissions []string) string {
 	result := fmt.Sprintf(`
 resource "sonarcloud_user_group_permissions" "test_permission" {
 	project_key = "%s"	
-	group = "%s"
+	name = "%s"
 	permissions = %s
 }
-`, project, group, permissionsListString(permissions))
+`, project, name, permissionsListString(permissions))
 	return result
 }
 

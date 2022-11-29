@@ -30,13 +30,18 @@ func (r resourceUserGroupPermissionsType) GetSchema(_ context.Context) (tfsdk.Sc
 				Optional:    true,
 				Description: "The key of the project to restrict the permissions to.",
 			},
-			"group": {
+			"name": {
 				Type:        types.StringType,
 				Required:    true,
-				Description: "User group to set the permissions for.",
+				Description: "The name of the user group to set the permissions for.",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					tfsdk.RequiresReplace(),
 				},
+			},
+			"description": {
+				Type:        types.StringType,
+				Computed:    true,
+				Description: "The description of the user group.",
 			},
 			"permissions": {
 				Type:     types.SetType{ElemType: types.StringType},
@@ -103,7 +108,7 @@ func (r resourceUserGroupPermissions) Create(ctx context.Context, req tfsdk.Crea
 			defer wg.Done()
 
 			request := permissions.AddGroupRequest{
-				GroupName:    plan.Group.Value,
+				GroupName:    plan.Name.Value,
 				Permission:   permission,
 				ProjectKey:   plan.ProjectKey.Value,
 				Organization: r.p.organization,
@@ -145,7 +150,7 @@ func (r resourceUserGroupPermissions) Create(ctx context.Context, req tfsdk.Crea
 
 	group, err := backoff.RetryWithData(
 		func() (*UserGroupPermissions, error) {
-			group, err := findUserGroupWithPermissionsSet(r.p.client, plan.Group.Value, plan.ProjectKey.Value, plan.Permissions)
+			group, err := findUserGroupWithPermissionsSet(r.p.client, plan.Name.Value, plan.ProjectKey.Value, plan.Permissions)
 			return group, err
 		}, backoffConfig)
 
@@ -179,7 +184,7 @@ func (r resourceUserGroupPermissions) Read(ctx context.Context, req tfsdk.ReadRe
 		return
 	}
 
-	if group, ok := findUserGroup(groups, state.Group.Value); ok {
+	if group, ok := findUserGroup(groups, state.Name.Value); ok {
 		permissionsElems := make([]attr.Value, len(group.Permissions))
 
 		for i, permission := range group.Permissions {
@@ -187,9 +192,10 @@ func (r resourceUserGroupPermissions) Read(ctx context.Context, req tfsdk.ReadRe
 		}
 
 		result := UserGroupPermissions{
-			ID:          state.ID,
+			ID:          types.String{Value: group.Id},
 			ProjectKey:  state.ProjectKey,
-			Group:       state.Group,
+			Name:        types.String{Value: group.Name},
+			Description: types.String{Value: group.Description},
 			Permissions: types.Set{Elems: permissionsElems, ElemType: types.StringType},
 		}
 		diags = resp.State.Set(ctx, result)
@@ -218,7 +224,7 @@ func (r resourceUserGroupPermissions) Update(ctx context.Context, req tfsdk.Upda
 
 	for _, remove := range toRemove {
 		removeRequest := permissions.RemoveGroupRequest{
-			GroupName:    state.Group.Value,
+			GroupName:    state.Name.Value,
 			Permission:   remove.(types.String).Value,
 			ProjectKey:   state.ProjectKey.Value,
 			Organization: r.p.organization,
@@ -234,7 +240,7 @@ func (r resourceUserGroupPermissions) Update(ctx context.Context, req tfsdk.Upda
 	}
 	for _, add := range toAdd {
 		addRequest := permissions.AddGroupRequest{
-			GroupName:    plan.Group.Value,
+			GroupName:    plan.Name.Value,
 			Permission:   add.(types.String).Value,
 			ProjectKey:   plan.ProjectKey.Value,
 			Organization: r.p.organization,
@@ -259,7 +265,7 @@ func (r resourceUserGroupPermissions) Update(ctx context.Context, req tfsdk.Upda
 
 	group, err := backoff.RetryWithData(
 		func() (*UserGroupPermissions, error) {
-			group, err := findUserGroupWithPermissionsSet(r.p.client, plan.Group.Value, plan.ProjectKey.Value, plan.Permissions)
+			group, err := findUserGroupWithPermissionsSet(r.p.client, plan.Name.Value, plan.ProjectKey.Value, plan.Permissions)
 			return group, err
 		}, backoffConfig)
 
@@ -284,7 +290,7 @@ func (r resourceUserGroupPermissions) Delete(ctx context.Context, req tfsdk.Dele
 
 	for _, remove := range state.Permissions.Elems {
 		removeRequest := permissions.RemoveGroupRequest{
-			GroupName:    state.Group.Value,
+			GroupName:    state.Name.Value,
 			Permission:   remove.(types.String).Value,
 			ProjectKey:   state.ProjectKey.Value,
 			Organization: r.p.organization,
@@ -314,16 +320,16 @@ type UserGroupPermissionsSearchResponseGroup struct {
 }
 
 // findUserGroupWithPermissionsSet tries to find a user group with the given name and the expected permissions
-func findUserGroupWithPermissionsSet(client *sonarcloud.Client, groupName, projectKey string, expectedPermissions types.Set) (*UserGroupPermissions, error) {
+func findUserGroupWithPermissionsSet(client *sonarcloud.Client, name, projectKey string, expectedPermissions types.Set) (*UserGroupPermissions, error) {
 	searchRequest := UserGroupPermissionsSearchRequest{ProjectKey: projectKey}
 	groups, err := sonarcloud.GetAll[UserGroupPermissionsSearchRequest, UserGroupPermissionsSearchResponseGroup](client, "/permissions/groups", searchRequest, "groups")
 	if err != nil {
 		return nil, err
 	}
 
-	group, ok := findUserGroup(groups, groupName)
+	group, ok := findUserGroup(groups, name)
 	if !ok {
-		return nil, fmt.Errorf("group not found in response (groupName='%s',projectKey='%s')", groupName, projectKey)
+		return nil, fmt.Errorf("group not found in response (name='%s',projectKey='%s')", name, projectKey)
 	}
 
 	permissionsElems := make([]attr.Value, len(group.Permissions))
@@ -334,25 +340,26 @@ func findUserGroupWithPermissionsSet(client *sonarcloud.Client, groupName, proje
 	foundPermissions := types.Set{Elems: permissionsElems, ElemType: types.StringType}
 
 	if !foundPermissions.Equal(expectedPermissions) {
-		return nil, fmt.Errorf("the returned permissions do not match the expected permissions (groupName='%s',projectKey='%s, expected='%v', got='%v')",
-			groupName,
+		return nil, fmt.Errorf("the returned permissions do not match the expected permissions (name='%s',projectKey='%s, expected='%v', got='%v')",
+			name,
 			projectKey,
 			expectedPermissions,
 			foundPermissions)
 	}
 
 	return &UserGroupPermissions{
-		ID:          types.String{Value: projectKey + "-" + groupName},
+		ID:          types.String{Value: projectKey + "-" + name},
 		ProjectKey:  types.String{Value: projectKey},
-		Group:       types.String{Value: groupName},
+		Name:        types.String{Value: group.Name},
+		Description: types.String{Value: group.Description},
 		Permissions: foundPermissions,
 	}, nil
 }
 
 // findUserGroup returns the user group with the given name, if it exists
-func findUserGroup(groups []UserGroupPermissionsSearchResponseGroup, groupName string) (*UserGroupPermissionsSearchResponseGroup, bool) {
+func findUserGroup(groups []UserGroupPermissionsSearchResponseGroup, name string) (*UserGroupPermissionsSearchResponseGroup, bool) {
 	for _, group := range groups {
-		if group.Name == groupName {
+		if group.Name == name {
 			return &group, true
 		}
 	}

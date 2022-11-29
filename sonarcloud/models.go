@@ -92,7 +92,8 @@ type Selection struct {
 type UserGroupPermissions struct {
 	ID          types.String `tfsdk:"id"`
 	ProjectKey  types.String `tfsdk:"project_key"`
-	Group       types.String `tfsdk:"group"`
+	Name        types.String `tfsdk:"name"`
+	Description types.String `tfsdk:"description"`
 	Permissions types.Set    `tfsdk:"permissions"`
 }
 
