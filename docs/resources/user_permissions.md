@@ -18,7 +18,7 @@ This resource manages the permissions of a user for the whole organization or a 
 ### Required
 
 - `login` (String) The login of the user to set the permissions for.
-- `permissions` (Set of String) List of permissions to grant.
+- `permissions` (Set of String) List of permissions to grant. Available global permissions: [`admin`, `profileadmin`, `gateadmin`, `scan`, `provisioning`]. Available project permissions: ['admin`, `scan`, `codeviewer`, `issueadmin`, `securityhotspotadmin`, `user`].
 
 ### Optional
 
