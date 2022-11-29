@@ -17,7 +17,7 @@ This resource manages the permissions of a user group for the whole organization
 
 ### Required
 
-- `group` (String) User group to set the permissions for.
+- `name` (String) The name of the user group to set the permissions for.
 - `permissions` (Set of String) List of permissions to grant. Available global permissions: [`admin`, `profileadmin`, `gateadmin`, `scan`, `provisioning`]. Available project permissions: ['admin`, `scan`, `codeviewer`, `issueadmin`, `securityhotspotadmin`, `user`].
 
 ### Optional
@@ -26,6 +26,7 @@ This resource manages the permissions of a user group for the whole organization
 
 ### Read-Only
 
+- `description` (String) The description of the user group.
 - `id` (String) The implicit ID of the resource
 
 
