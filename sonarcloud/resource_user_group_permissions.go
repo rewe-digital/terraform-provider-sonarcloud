@@ -3,6 +3,7 @@ package sonarcloud
 import (
 	"context"
 	"fmt"
+	"github.com/cenkalti/backoff/v4"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -133,38 +134,29 @@ func (r resourceUserGroupPermissions) Create(ctx context.Context, req tfsdk.Crea
 		)
 	}
 
-	// Query for permissions
-	searchRequest := UserGroupPermissionsSearchRequest{ProjectKey: plan.ProjectKey.Value}
-	groups, err := sonarcloud.GetAll[UserGroupPermissionsSearchRequest, UserGroupPermissionsSearchResponseGroup](r.p.client, "/permissions/groups", searchRequest, "groups")
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Could not get user group permissions",
-			fmt.Sprintf("The request returned an error: %+v", err),
-		)
+	plannedPermissions := make([]string, len(plan.Permissions.Elems))
+	diags = plan.Permissions.ElementsAs(ctx, &plannedPermissions, true)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if perms, ok := findGroupPermissions(groups, plan.Group.Value); ok {
-		permissionsElems := make([]attr.Value, len(perms))
+	backoffConfig := defaultBackoffConfig()
 
-		for i, permission := range perms {
-			permissionsElems[i] = types.String{Value: permission}
-		}
+	group, err := backoff.RetryWithData(
+		func() (*UserGroupPermissions, error) {
+			group, err := findUserGroupWithPermissionsSet(r.p.client, plan.Group.Value, plan.ProjectKey.Value, plan.Permissions)
+			return group, err
+		}, backoffConfig)
 
-		result := UserGroupPermissions{
-			ID:          types.String{Value: plan.ProjectKey.Value + "-" + plan.Group.Value},
-			ProjectKey:  plan.ProjectKey,
-			Group:       plan.Group,
-			Permissions: types.Set{Elems: permissionsElems, ElemType: types.StringType},
-		}
-		diags = resp.State.Set(ctx, result)
-		resp.Diagnostics.Append(diags...)
-	} else {
+	if err != nil {
 		resp.Diagnostics.AddError(
-			"Could not find user group permission",
-			fmt.Sprintf("The findGroupPermissions function was unable to find the group: %s in the response: %+v", plan.Group.Value, groups),
+			"Could not find the user group with the planned permissions",
+			fmt.Sprintf("The findUserGroupWithPermissionsSet call returned an error: %+v ", err),
 		)
-		return
+	} else {
+		diags = resp.State.Set(ctx, group)
+		resp.Diagnostics.Append(diags...)
 	}
 }
 
@@ -187,10 +179,10 @@ func (r resourceUserGroupPermissions) Read(ctx context.Context, req tfsdk.ReadRe
 		return
 	}
 
-	if perms, ok := findGroupPermissions(groups, state.Group.Value); ok {
-		permissionsElems := make([]attr.Value, len(perms))
+	if group, ok := findUserGroup(groups, state.Group.Value); ok {
+		permissionsElems := make([]attr.Value, len(group.Permissions))
 
-		for i, permission := range perms {
+		for i, permission := range group.Permissions {
 			permissionsElems[i] = types.String{Value: permission}
 		}
 
@@ -256,38 +248,29 @@ func (r resourceUserGroupPermissions) Update(ctx context.Context, req tfsdk.Upda
 		}
 	}
 
-	// Query for permissions
-	searchRequest := UserGroupPermissionsSearchRequest{ProjectKey: plan.ProjectKey.Value}
-	groups, err := sonarcloud.GetAll[UserGroupPermissionsSearchRequest, UserGroupPermissionsSearchResponseGroup](r.p.client, "/permissions/groups", searchRequest, "groups")
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Could not get user group permissions",
-			fmt.Sprintf("The request returned an error: %+v", err),
-		)
+	plannedPermissions := make([]string, len(plan.Permissions.Elems))
+	diags = plan.Permissions.ElementsAs(ctx, &plannedPermissions, true)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if perms, ok := findGroupPermissions(groups, plan.Group.Value); ok {
-		permissionsElems := make([]attr.Value, len(perms))
+	backoffConfig := defaultBackoffConfig()
 
-		for i, permission := range perms {
-			permissionsElems[i] = types.String{Value: permission}
-		}
+	group, err := backoff.RetryWithData(
+		func() (*UserGroupPermissions, error) {
+			group, err := findUserGroupWithPermissionsSet(r.p.client, plan.Group.Value, plan.ProjectKey.Value, plan.Permissions)
+			return group, err
+		}, backoffConfig)
 
-		result := UserGroupPermissions{
-			ID:          types.String{Value: plan.ProjectKey.Value + "-" + plan.Group.Value},
-			ProjectKey:  plan.ProjectKey,
-			Group:       plan.Group,
-			Permissions: types.Set{Elems: permissionsElems, ElemType: types.StringType},
-		}
-		diags = resp.State.Set(ctx, result)
-		resp.Diagnostics.Append(diags...)
-	} else {
+	if err != nil {
 		resp.Diagnostics.AddError(
-			"Could not find user group permissions",
-			fmt.Sprintf("The findGroupPermissions function was unable to find the group: %s in the response: %+v", plan.Group.Value, groups),
+			"Could not find the user group with the planned permissions",
+			fmt.Sprintf("The findUserGroupWithPermissionsSet call returned an error: %+v ", err),
 		)
-		return
+	} else {
+		diags = resp.State.Set(ctx, group)
+		resp.Diagnostics.Append(diags...)
 	}
 }
 
@@ -328,4 +311,39 @@ type UserGroupPermissionsSearchResponseGroup struct {
 	Name        string   `json:"name,omitempty"`
 	Description string   `json:"description,omitempty"`
 	Permissions []string `json:"permissions,omitempty"`
+}
+
+func findUserGroupWithPermissionsSet(client *sonarcloud.Client, groupName, projectKey string, expectedPermissions types.Set) (*UserGroupPermissions, error) {
+	searchRequest := UserGroupPermissionsSearchRequest{ProjectKey: projectKey}
+	groups, err := sonarcloud.GetAll[UserGroupPermissionsSearchRequest, UserGroupPermissionsSearchResponseGroup](client, "/permissions/groups", searchRequest, "groups")
+	if err != nil {
+		return nil, err
+	}
+
+	group, ok := findUserGroup(groups, groupName)
+	if !ok {
+		return nil, fmt.Errorf("group not found in response (groupName='%s',projectKey='%s')", groupName, projectKey)
+	}
+
+	permissionsElems := make([]attr.Value, len(group.Permissions))
+	for i, permission := range group.Permissions {
+		permissionsElems[i] = types.String{Value: permission}
+	}
+
+	foundPermissions := types.Set{Elems: permissionsElems, ElemType: types.StringType}
+
+	if !foundPermissions.Equal(expectedPermissions) {
+		return nil, fmt.Errorf("the returned permissions do not match the expected permissions (groupName='%s',projectKey='%s, expected='%v', got='%v')",
+			groupName,
+			projectKey,
+			expectedPermissions,
+			foundPermissions)
+	}
+
+	return &UserGroupPermissions{
+		ID:          types.String{Value: projectKey + "-" + groupName},
+		ProjectKey:  types.String{Value: projectKey},
+		Group:       types.String{Value: groupName},
+		Permissions: foundPermissions,
+	}, nil
 }
