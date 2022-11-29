@@ -325,6 +325,7 @@ type UserPermissionsSearchResponseUser struct {
 	Avatar      string   `json:"avatar,omitempty"`
 }
 
+// findUserWithPermissionsSet tries to find a user with the given login and the expected permissions
 func findUserWithPermissionsSet(client *sonarcloud.Client, login, projectKey string, expectedPermissions types.Set) (*UserPermissions, error) {
 	searchRequest := UserGroupPermissionsSearchRequest{ProjectKey: projectKey}
 	users, err := sonarcloud.GetAll[UserGroupPermissionsSearchRequest, UserPermissionsSearchResponseUser](client, "/permissions/users", searchRequest, "users")
@@ -361,4 +362,14 @@ func findUserWithPermissionsSet(client *sonarcloud.Client, login, projectKey str
 		Avatar:      types.String{Value: user.Avatar},
 	}, nil
 
+}
+
+// findUser returns the user with the given login, if it exists
+func findUser(users []UserPermissionsSearchResponseUser, login string) (*UserPermissionsSearchResponseUser, bool) {
+	for _, user := range users {
+		if user.Login == login {
+			return &user, true
+		}
+	}
+	return nil, false
 }
