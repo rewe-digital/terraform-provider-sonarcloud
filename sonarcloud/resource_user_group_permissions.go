@@ -38,9 +38,11 @@ func (r resourceUserGroupPermissionsType) GetSchema(_ context.Context) (tfsdk.Sc
 				},
 			},
 			"permissions": {
-				Type:        types.SetType{ElemType: types.StringType},
-				Required:    true,
-				Description: "List of permissions to grant.",
+				Type:     types.SetType{ElemType: types.StringType},
+				Required: true,
+				Description: "List of permissions to grant." +
+					" Available global permissions: [`admin`, `profileadmin`, `gateadmin`, `scan`, `provisioning`]." +
+					" Available project permissions: ['admin`, `scan`, `codeviewer`, `issueadmin`, `securityhotspotadmin`, `user`].",
 				Validators: []tfsdk.AttributeValidator{
 					allowedSetOptions(
 						// Global permissions
