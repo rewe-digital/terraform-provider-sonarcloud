@@ -313,6 +313,7 @@ type UserGroupPermissionsSearchResponseGroup struct {
 	Permissions []string `json:"permissions,omitempty"`
 }
 
+// findUserGroupWithPermissionsSet tries to find a user group with the given name and the expected permissions
 func findUserGroupWithPermissionsSet(client *sonarcloud.Client, groupName, projectKey string, expectedPermissions types.Set) (*UserGroupPermissions, error) {
 	searchRequest := UserGroupPermissionsSearchRequest{ProjectKey: projectKey}
 	groups, err := sonarcloud.GetAll[UserGroupPermissionsSearchRequest, UserGroupPermissionsSearchResponseGroup](client, "/permissions/groups", searchRequest, "groups")
@@ -346,4 +347,14 @@ func findUserGroupWithPermissionsSet(client *sonarcloud.Client, groupName, proje
 		Group:       types.String{Value: groupName},
 		Permissions: foundPermissions,
 	}, nil
+}
+
+// findUserGroup returns the user group with the given name, if it exists
+func findUserGroup(groups []UserGroupPermissionsSearchResponseGroup, groupName string) (*UserGroupPermissionsSearchResponseGroup, bool) {
+	for _, group := range groups {
+		if group.Name == groupName {
+			return &group, true
+		}
+	}
+	return nil, false
 }

@@ -179,26 +179,6 @@ func findSelection(response *qualitygates.SearchResponse, keys []attr.Value) (Se
 	}, ok
 }
 
-// findUserGroup returns the user group with the given name, if it exists
-func findUserGroup(groups []UserGroupPermissionsSearchResponseGroup, groupName string) (*UserGroupPermissionsSearchResponseGroup, bool) {
-	for _, group := range groups {
-		if group.Name == groupName {
-			return &group, true
-		}
-	}
-	return nil, false
-}
-
-// findUser returns the user with the given login, if it exists
-func findUser(users []UserPermissionsSearchResponseUser, login string) (*UserPermissionsSearchResponseUser, bool) {
-	for _, user := range users {
-		if user.Login == login {
-			return &user, true
-		}
-	}
-	return nil, false
-}
-
 // terraformListString returns the list of items in terraform list notation
 func terraformListString(items []string) string {
 	return fmt.Sprintf(`["%s"]`, strings.Join(items, `","`))
