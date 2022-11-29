@@ -224,7 +224,7 @@ func (r resourceUserPermissions) Update(ctx context.Context, req tfsdk.UpdateRes
 		return
 	}
 
-	toAdd, toRemove := diffUserPermissions(state, plan)
+	toAdd, toRemove := diffAttrSets(state.Permissions, plan.Permissions)
 
 	for _, remove := range toRemove {
 		removeRequest := permissions.RemoveUserRequest{
@@ -359,31 +359,4 @@ func findUserWithPermissionsSet(client *sonarcloud.Client, login, projectKey str
 		Avatar:      types.String{Value: user.Avatar},
 	}, nil
 
-}
-
-// TODO: move to helpers and as types.Set as argument types (so pass state.Permissions instead of state)
-func diffUserPermissions(state, plan UserPermissions) (toAdd, toRemove []attr.Value) {
-	for _, have := range state.Permissions.Elems {
-		if !containsUserPermissions(plan.Permissions.Elems, have.(types.String).Value) {
-			toRemove = append(toRemove, types.String{Value: have.(types.String).Value})
-		}
-	}
-	for _, want := range plan.Permissions.Elems {
-		if !containsUserPermissions(state.Permissions.Elems, want.(types.String).Value) {
-			toAdd = append(toAdd, types.String{Value: want.(types.String).Value})
-		}
-	}
-
-	return
-}
-
-// Check if a list or permissions contains a certain permission
-// TODO: move to helpers and deduplicate usage
-func containsUserPermissions(list []attr.Value, item string) bool {
-	for _, c := range list {
-		if c.Equal(types.String{Value: item}) {
-			return true
-		}
-	}
-	return false
 }

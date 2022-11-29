@@ -220,7 +220,7 @@ func (r resourceUserGroupPermissions) Update(ctx context.Context, req tfsdk.Upda
 		return
 	}
 
-	toAdd, toRemove := diffUserGroupPermissions(state, plan)
+	toAdd, toRemove := diffAttrSets(state.Permissions, plan.Permissions)
 
 	for _, remove := range toRemove {
 		removeRequest := permissions.RemoveGroupRequest{
@@ -326,29 +326,4 @@ type PermissionsSearchResponseGroup struct {
 	Name        string   `json:"name,omitempty"`
 	Description string   `json:"description,omitempty"`
 	Permissions []string `json:"permissions,omitempty"`
-}
-
-func diffUserGroupPermissions(state, plan UserGroupPermissions) (toAdd, toRemove []attr.Value) {
-	for _, have := range state.Permissions.Elems {
-		if !containUserGroupPermissions(plan.Permissions.Elems, have.(types.String).Value) {
-			toRemove = append(toRemove, types.String{Value: have.(types.String).Value})
-		}
-	}
-	for _, want := range plan.Permissions.Elems {
-		if !containUserGroupPermissions(state.Permissions.Elems, want.(types.String).Value) {
-			toAdd = append(toAdd, types.String{Value: want.(types.String).Value})
-		}
-	}
-
-	return
-}
-
-// Check if a list or permissions contains a certain permission
-func containUserGroupPermissions(list []attr.Value, item string) bool {
-	for _, c := range list {
-		if c.Equal(types.String{Value: item}) {
-			return true
-		}
-	}
-	return false
 }

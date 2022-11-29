@@ -215,3 +215,29 @@ func defaultBackoffConfig() *backoff.ExponentialBackOff {
 	backoffConfig.InitialInterval = 250 * time.Millisecond
 	return backoffConfig
 }
+
+// stringAttributesContain checks if the given string is found in the list of attributes
+func stringAttributesContain(haystack []attr.Value, needle string) bool {
+	for _, v := range haystack {
+		if v.Equal(types.String{Value: needle}) {
+			return true
+		}
+	}
+	return false
+}
+
+// diffAttrSets returns the additions and deletions needed to get from the set we have, to the set we want
+func diffAttrSets(haves, wants types.Set) (toAdd, toRemove []attr.Value) {
+	for _, have := range haves.Elems {
+		if !stringAttributesContain(wants.Elems, have.(types.String).Value) {
+			toRemove = append(toRemove, types.String{Value: have.(types.String).Value})
+		}
+	}
+	for _, want := range wants.Elems {
+		if !stringAttributesContain(haves.Elems, want.(types.String).Value) {
+			toAdd = append(toAdd, types.String{Value: want.(types.String).Value})
+		}
+	}
+
+	return toAdd, toRemove
+}
