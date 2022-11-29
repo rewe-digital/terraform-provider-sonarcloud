@@ -177,8 +177,8 @@ func (r resourceUserPermissions) Read(ctx context.Context, req tfsdk.ReadResourc
 	}
 
 	// Query for permissions
-	searchRequest := PermissionsSearchRequest{ProjectKey: state.ProjectKey.Value}
-	users, err := sonarcloud.GetAll[PermissionsSearchRequest, UserPermissionsSearchResponseUser](r.p.client, "/permissions/users", searchRequest, "users")
+	searchRequest := UserPermissionsSearchRequest{ProjectKey: state.ProjectKey.Value}
+	users, err := sonarcloud.GetAll[UserPermissionsSearchRequest, UserPermissionsSearchResponseUser](r.p.client, "/permissions/users", searchRequest, "users")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Could not get user permissions",
@@ -324,8 +324,8 @@ type UserPermissionsSearchResponseUser struct {
 }
 
 func findUserWithPermissionsSet(client *sonarcloud.Client, login, projectKey string, expectedPermissions types.Set) (*UserPermissions, error) {
-	searchRequest := PermissionsSearchRequest{ProjectKey: projectKey}
-	users, err := sonarcloud.GetAll[PermissionsSearchRequest, UserPermissionsSearchResponseUser](client, "/permissions/users", searchRequest, "users")
+	searchRequest := UserGroupPermissionsSearchRequest{ProjectKey: projectKey}
+	users, err := sonarcloud.GetAll[UserGroupPermissionsSearchRequest, UserPermissionsSearchResponseUser](client, "/permissions/users", searchRequest, "users")
 	if err != nil {
 		return nil, err
 	}
