@@ -144,3 +144,10 @@ type DataProjectLink struct {
 	Type types.String `tfsdk:"type"`
 	Url  types.String `tfsdk:"url"`
 }
+
+type ProjectLink struct {
+	ID         types.String `tfsdk:"id"`
+	ProjectKey types.String `tfsdk:"project_key"`
+	Name       types.String `tfsdk:"name"`
+	Url        types.String `tfsdk:"url"`
+}
