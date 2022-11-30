@@ -88,6 +88,7 @@ func (p *provider) GetResources(_ context.Context) (map[string]tfsdk.ResourceTyp
 		"sonarcloud_user_group":             resourceUserGroupType{},
 		"sonarcloud_user_group_member":      resourceUserGroupMemberType{},
 		"sonarcloud_project":                resourceProjectType{},
+		"sonarcloud_project_link":           resourceProjectLinkType{},
 		"sonarcloud_project_main_branch":    resourceProjectMainBranchType{},
 		"sonarcloud_user_token":             resourceUserTokenType{},
 		"sonarcloud_quality_gate":           resourceQualityGateType{},
