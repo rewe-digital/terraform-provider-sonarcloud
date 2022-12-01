@@ -6,10 +6,12 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/permissions"
+	"strings"
 	"sync"
 	"time"
 )
@@ -306,6 +308,22 @@ func (r resourceUserGroupPermissions) Delete(ctx context.Context, req tfsdk.Dele
 	}
 
 	resp.State.RemoveResource(ctx)
+}
+
+func (r UserGroupPermissions) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) < 1 || len(idParts) > 2 || idParts[0] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: name OR name,project_key. Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	if len(idParts) == 2 {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_key"), idParts[1])...)
+	}
 }
 
 type UserGroupPermissionsSearchRequest struct {
