@@ -25,4 +25,11 @@ This resource represents a project link.
 
 - `id` (String) ID of the link.
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+# import a project link using <id>,<project_key>
+terraform import "sonarcloud_project_link.example_project" "ABCDEFGHIJKLMNOPQRST,example_project"
+```
