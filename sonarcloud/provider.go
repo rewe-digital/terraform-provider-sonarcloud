@@ -110,6 +110,7 @@ func (p *provider) GetDataSources(_ context.Context) (map[string]tfsdk.DataSourc
 		"sonarcloud_user_permissions":       dataSourceUserPermissionsType{},
 		"sonarcloud_quality_gate":           dataSourceQualityGateType{},
 		"sonarcloud_quality_gates":          dataSourceQualityGatesType{},
+		"sonarcloud_webhooks":               dataSourceWebhooksType{},
 	}, nil
 }
 
