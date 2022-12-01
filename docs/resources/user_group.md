@@ -36,4 +36,11 @@ resource "sonarcloud_user_group" "example_group" {
 - `id` (String) The ID of this resource.
 - `members_count` (Number) The number of members this group has.
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+# import a user group using  <group_name>
+terraform import "sonarcloud_user_group.qa_team" "QA Team"
+```
