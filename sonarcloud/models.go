@@ -152,6 +152,19 @@ type ProjectLink struct {
 	Url        types.String `tfsdk:"url"`
 }
 
+type DataWebhooks struct {
+	ID       types.String  `tfsdk:"id"`
+	Project  types.String  `tfsdk:"project"`
+	Webhooks []DataWebhook `tfsdk:"webhooks"`
+}
+
+type DataWebhook struct {
+	Key    types.String `tfsdk:"key"`
+	Name   types.String `tfsdk:"name"`
+	Secret types.String `tfsdk:"secret"`
+	Url    types.String `tfsdk:"url"`
+}
+
 type Webhook struct {
 	ID      types.String `tfsdk:"id"`
 	Key     types.String `tfsdk:"key"`
