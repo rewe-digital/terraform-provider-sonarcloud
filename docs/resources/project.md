@@ -36,4 +36,11 @@ resource "sonarcloud_project" "example_project" {
 
 - `id` (String) The ID of this resource.
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+# import a project using <project_key>
+terraform import "sonarcloud_project.example_project" "example_project"
+```
