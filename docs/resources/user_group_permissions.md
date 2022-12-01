@@ -29,4 +29,14 @@ This resource manages the permissions of a user group for the whole organization
 - `description` (String) The description of the user group.
 - `id` (String) The implicit ID of the resource
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+# import user group permissions for the whole organization using <name>
+terraform import "sonarcloud_user_group_permissions.example_group" "Example Group"
+
+# import user group permissions for a specific project using <name>,<project_key>
+terraform import "sonarcloud_user_group_permissions.example_group" "Example Group,example_project"
+```
