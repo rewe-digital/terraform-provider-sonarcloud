@@ -95,6 +95,7 @@ func (p *provider) GetResources(_ context.Context) (map[string]tfsdk.ResourceTyp
 		"sonarcloud_quality_gate_selection": resourceQualityGateSelectionType{},
 		"sonarcloud_user_permissions":       resourceUserPermissionsType{},
 		"sonarcloud_user_group_permissions": resourceUserGroupPermissionsType{},
+		"sonarcloud_webhook":                resourceWebhookType{},
 	}, nil
 }
 
