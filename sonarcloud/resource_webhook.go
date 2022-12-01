@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/webhooks"
+	"strings"
 )
 
 type resourceWebhookType struct{}
@@ -230,7 +231,19 @@ func (r resourceWebhook) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 }
 
 func (r Webhook) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-	tfsdk.ResourceImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) < 1 || len(idParts) > 2 || idParts[0] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: id OR id,project_key. Got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), idParts[0])...)
+	if len(idParts) == 2 {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project"), idParts[1])...)
+	}
 }
 
 // findWebhook returns the link with the given id, if it exists in the response

@@ -30,4 +30,14 @@ This resource represents a project or organization webhook.
 - `id` (String) ID of the webhook, this is equal to its key.
 - `key` (String) Key of the webhook.
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+# import a webhook for the whole organization using <id>
+terraform import "sonarcloud_webhook.example" "ABCDEFGHIJKLMNOPQRST"
+
+# import a webhook for a specific project using <id>,<project_key>
+terraform import "sonarcloud_webhook.example" "ABCDEFGHIJKLMNOPQRST,example_project"
+```
