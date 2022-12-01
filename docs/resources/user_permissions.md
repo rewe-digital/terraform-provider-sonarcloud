@@ -30,4 +30,14 @@ This resource manages the permissions of a user for the whole organization or a 
 - `id` (String) The implicit ID of the resource.
 - `name` (String) The name of the user.
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+# import user permissions for the whole organization using <login>
+terraform import "sonarcloud_user_permissions.example_user" "user@github.com"
+
+# import user permissions for a specific project using <login>,<project_key>
+terraform import "sonarcloud_user_permissions.example_user" "user@github.com,example_project"
+```
