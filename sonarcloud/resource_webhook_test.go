@@ -4,33 +4,36 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"os"
 	"testing"
 )
 
 func TestAccWebhook(t *testing.T) {
-	//project := os.Getenv("SONARCLOUD_PROJECT_KEY")
+	project := os.Getenv("SONARCLOUD_PROJECT_KEY")
 	secret := "ThisIsNotAVeryGoodSecret..."
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
-			//{
-			//	Config: testAccProjectWebhookConfig("test", project, secret, "https://www.example.com"),
-			//	Check: resource.ComposeTestCheckFunc(
-			//		resource.TestCheckResourceAttr("sonarcloud_webhook.test", "name", "test"),
-			//		resource.TestCheckResourceAttr("sonarcloud_webhook.test", "url", "https://www.example.com"),
-			//		resource.TestCheckResourceAttr("sonarcloud_webhook.test", "secret", secret),
-			//	),
-			//},
-			//{
-			//	Config: testAccProjectWebhookConfig("test-two", project, "", "https://www.example.com/test"),
-			//	Check: resource.ComposeTestCheckFunc(
-			//		resource.TestCheckResourceAttr("sonarcloud_webhook.test", "name", "test-two"),
-			//		resource.TestCheckResourceAttr("sonarcloud_webhook.test", "url", "https://www.example.com/test"),
-			//		resource.TestCheckResourceAttr("sonarcloud_webhook.test", "secret", ""),
-			//	),
-			//},
+			{
+				Config: testAccProjectWebhookConfig("test", project, secret, "https://www.example.com"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("sonarcloud_webhook.test", "name", "test"),
+					resource.TestCheckResourceAttr("sonarcloud_webhook.test", "url", "https://www.example.com"),
+					resource.TestCheckResourceAttr("sonarcloud_webhook.test", "secret", secret),
+				),
+			},
+			webhookImportCheck("sonarcloud_webhook.test", project),
+			{
+				Config: testAccProjectWebhookConfig("test-two", project, "", "https://www.example.com/test"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("sonarcloud_webhook.test", "name", "test-two"),
+					resource.TestCheckResourceAttr("sonarcloud_webhook.test", "url", "https://www.example.com/test"),
+					resource.TestCheckResourceAttr("sonarcloud_webhook.test", "secret", ""),
+				),
+			},
+			webhookImportCheck("sonarcloud_webhook.test", project),
 			{
 				Config: testAccOrganizationWebhookConfig("test", secret, "https://www.example.com"),
 				Check: resource.ComposeTestCheckFunc(
@@ -39,14 +42,16 @@ func TestAccWebhook(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_webhook.test", "secret", secret),
 				),
 			},
-			//{
-			//	Config: testAccOrganizationWebhookConfig("test-two", "", "https://www.example.com/test"),
-			//	Check: resource.ComposeTestCheckFunc(
-			//		resource.TestCheckResourceAttr("sonarcloud_webhook.test", "name", "test-two"),
-			//		resource.TestCheckResourceAttr("sonarcloud_webhook.test", "url", "https://www.example.com/test"),
-			//		resource.TestCheckResourceAttr("sonarcloud_webhook.test", "secret", ""),
-			//	),
-			//},
+			webhookImportCheck("sonarcloud_webhook.test", ""),
+			{
+				Config: testAccOrganizationWebhookConfig("test-two", "", "https://www.example.com/test"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("sonarcloud_webhook.test", "name", "test-two"),
+					resource.TestCheckResourceAttr("sonarcloud_webhook.test", "url", "https://www.example.com/test"),
+					resource.TestCheckResourceAttr("sonarcloud_webhook.test", "secret", ""),
+				),
+			},
+			webhookImportCheck("sonarcloud_webhook.test", ""),
 		},
 		CheckDestroy: testAccWebhookDestroy,
 	})
@@ -77,4 +82,16 @@ resource "sonarcloud_webhook" "test" {
 }
 `, name, secret, url)
 	return result
+}
+
+func webhookImportCheck(resourceName, project string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName: resourceName,
+		ImportState:  true,
+		ImportStateIdFunc: func(state *terraform.State) (string, error) {
+			id := state.RootModule().Resources[resourceName].Primary.ID
+			return fmt.Sprintf("%s,%s", id, project), nil
+		},
+		ImportStateVerify: true,
+	}
 }
