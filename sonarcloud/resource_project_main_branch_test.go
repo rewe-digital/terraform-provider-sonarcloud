@@ -26,6 +26,7 @@ func TestAccResourceProjectMainBranch(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_project_main_branch.test", "project_key", key),
 				),
 			},
+			projectMainBranchImportCheck("sonarcloud_project_main_branch.test", names[0], key),
 			{
 				Config: testAccProjectMainBranchConfig(key, names[1]),
 				Check: resource.ComposeTestCheckFunc(
@@ -33,8 +34,9 @@ func TestAccResourceProjectMainBranch(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_project_main_branch.test", "project_key", key),
 				),
 			},
+			projectMainBranchImportCheck("sonarcloud_project_main_branch.test", names[1], key),
 		},
-		CheckDestroy: testAccProjectDestroy,
+		CheckDestroy: testAccProjectMainBranchDestroy,
 	})
 }
 
@@ -55,4 +57,13 @@ resource "sonarcloud_project_main_branch" "test" {
 	project_key = sonarcloud_project.test.key
 }
 `, project, project, branchName)
+}
+
+func projectMainBranchImportCheck(resourceName, name, projectKey string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:      resourceName,
+		ImportState:       true,
+		ImportStateId:     fmt.Sprintf("%s,%s", name, projectKey),
+		ImportStateVerify: true,
+	}
 }
