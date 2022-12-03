@@ -32,6 +32,7 @@ func TestAccUserGroupMember(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_user_group_member.test_group_member", "login", login),
 				),
 			},
+			userGroupMemberImportCheck("sonarcloud_user_group_member.test_group_member", login, group),
 		},
 		CheckDestroy: testAccUserGroupMemberDestroy,
 	})
@@ -48,4 +49,13 @@ resource "sonarcloud_user_group_member" "test_group_member" {
 	login = "%s"
 }
 `, group, login)
+}
+
+func userGroupMemberImportCheck(resourceName, login, group string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:      resourceName,
+		ImportState:       true,
+		ImportStateId:     fmt.Sprintf("%s,%s", login, group),
+		ImportStateVerify: true,
+	}
 }
