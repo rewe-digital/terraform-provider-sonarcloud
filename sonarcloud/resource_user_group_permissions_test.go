@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccUserGroupPermissions(t *testing.T) {
-	project := os.Getenv("SONARCLOUD_PROJECT_KEY")
+	projectKey := os.Getenv("SONARCLOUD_PROJECT_KEY")
 	name := os.Getenv("SONARCLOUD_TEST_GROUP_NAME")
 
 	// Possible values for global permissions: admin, profileadmin, gateadmin, scan, provisioning
@@ -32,6 +32,7 @@ func TestAccUserGroupPermissions(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "provisioning"),
 				),
 			},
+			userGroupPermissionsImportCheck("sonarcloud_user_group_permissions.test_permission", name, ""),
 			{
 				Config: testAccPermissionConfig("", name, []string{
 					"provisioning",
@@ -44,6 +45,7 @@ func TestAccUserGroupPermissions(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.1", "scan"),
 				),
 			},
+			userGroupPermissionsImportCheck("sonarcloud_user_group_permissions.test_permission", name, ""),
 			{
 				Config: testAccPermissionConfig("", name, []string{
 					"scan",
@@ -54,38 +56,42 @@ func TestAccUserGroupPermissions(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "scan"),
 				),
 			},
+			userGroupPermissionsImportCheck("sonarcloud_user_group_permissions.test_permission", name, ""),
 			{
-				Config: testAccPermissionConfig(project, name, []string{
+				Config: testAccPermissionConfig(projectKey, name, []string{
 					"admin",
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", project),
+					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", projectKey),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "name", name),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "admin"),
 				),
 			},
+			userGroupPermissionsImportCheck("sonarcloud_user_group_permissions.test_permission", name, projectKey),
 			{
-				Config: testAccPermissionConfig(project, name, []string{
+				Config: testAccPermissionConfig(projectKey, name, []string{
 					"issueadmin",
 					"scan",
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", project),
+					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", projectKey),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "name", name),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "issueadmin"),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.1", "scan"),
 				),
 			},
+			userGroupPermissionsImportCheck("sonarcloud_user_group_permissions.test_permission", name, projectKey),
 			{
-				Config: testAccPermissionConfig(project, name, []string{
+				Config: testAccPermissionConfig(projectKey, name, []string{
 					"scan",
 				}),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", project),
+					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "project_key", projectKey),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "name", name),
 					resource.TestCheckResourceAttr("sonarcloud_user_group_permissions.test_permission", "permissions.0", "scan"),
 				),
 			},
+			userGroupPermissionsImportCheck("sonarcloud_user_group_permissions.test_permission", name, projectKey),
 		},
 		CheckDestroy: testAccPermissionDestroy,
 	})
@@ -108,4 +114,13 @@ resource "sonarcloud_user_group_permissions" "test_permission" {
 
 func permissionsListString(permissions []string) string {
 	return fmt.Sprintf(`["%s"]`, strings.Join(permissions, `","`))
+}
+
+func userGroupPermissionsImportCheck(resourceName, name, projectKey string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:      resourceName,
+		ImportState:       true,
+		ImportStateId:     fmt.Sprintf("%s,%s", name, projectKey),
+		ImportStateVerify: true,
+	}
 }

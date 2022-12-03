@@ -310,7 +310,7 @@ func (r resourceUserGroupPermissions) Delete(ctx context.Context, req tfsdk.Dele
 	resp.State.RemoveResource(ctx)
 }
 
-func (r UserGroupPermissions) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+func (r resourceUserGroupPermissions) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) < 1 || len(idParts) > 2 || idParts[0] == "" {
 		resp.Diagnostics.AddError(
