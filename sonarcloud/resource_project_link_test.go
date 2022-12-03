@@ -23,6 +23,7 @@ func TestAccProjectLink(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_project_link.test", "url", "https://www.example.com"),
 				),
 			},
+			projectLinkImportCheck("sonarcloud_project_link.test", projectKey),
 			{
 				Config: testAccProjectLinkConfig(projectKey, "test", "https://www.iana.org/domains/reserved"),
 				Check: resource.ComposeTestCheckFunc(
@@ -31,6 +32,7 @@ func TestAccProjectLink(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_project_link.test", "url", "https://www.iana.org/domains/reserved"),
 				),
 			},
+			projectLinkImportCheck("sonarcloud_project_link.test", projectKey),
 			{
 				Config: testAccProjectLinkConfig(projectKey, "test-two", "https://www.iana.org/domains/reserved"),
 				Check: resource.ComposeTestCheckFunc(
@@ -39,6 +41,7 @@ func TestAccProjectLink(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_project_link.test", "url", "https://www.iana.org/domains/reserved"),
 				),
 			},
+			projectLinkImportCheck("sonarcloud_project_link.test", projectKey),
 		},
 		CheckDestroy: testAccLinkDestroy,
 	})
@@ -57,4 +60,16 @@ resource "sonarcloud_project_link" "test" {
 }
 `, projectKey, name, url)
 	return result
+}
+
+func projectLinkImportCheck(resourceName, projectKey string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName: resourceName,
+		ImportState:  true,
+		ImportStateIdFunc: func(state *terraform.State) (string, error) {
+			id := state.RootModule().Resources[resourceName].Primary.ID
+			return fmt.Sprintf("%s,%s", id, projectKey), nil
+		},
+		ImportStateVerify: true,
+	}
 }
