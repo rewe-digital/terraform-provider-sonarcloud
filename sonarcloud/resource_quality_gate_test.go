@@ -30,6 +30,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.op", Op[0]),
 				),
 			},
+			qualityGateImportCheck("sonarcloud_quality_gate.test", names[0]),
 			{
 				Config: testAccQualityGateConfig(names[1], def[1], metrics[1], testError[1], Op[1]),
 				Check: resource.ComposeTestCheckFunc(
@@ -39,6 +40,7 @@ func TestAccResourceQualityGate(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_quality_gate.test", "conditions.0.op", Op[1]),
 				),
 			},
+			qualityGateImportCheck("sonarcloud_quality_gate.test", names[1]),
 		},
 		CheckDestroy: testAccQualityGateDestroy,
 	})
@@ -63,4 +65,13 @@ resource "sonarcloud_quality_gate" "test" {
 }
 	`, name, def, metric, err, op)
 
+}
+
+func qualityGateImportCheck(resourceName, name string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:      resourceName,
+		ImportState:       true,
+		ImportStateId:     name,
+		ImportStateVerify: true,
+	}
 }
