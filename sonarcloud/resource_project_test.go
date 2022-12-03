@@ -28,6 +28,7 @@ func TestAccResourceProject(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_project.test", "visibility", visibilities[0]),
 				),
 			},
+			projectImportCheck("sonarcloud_project.test", keys[0]),
 			{
 				Config: testAccProjectConfig(names[1], keys[0], visibilities[0]),
 				Check: resource.ComposeTestCheckFunc(
@@ -36,6 +37,7 @@ func TestAccResourceProject(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_project.test", "visibility", visibilities[0]),
 				),
 			},
+			projectImportCheck("sonarcloud_project.test", keys[0]),
 			{
 				Config: testAccProjectConfig(names[1], keys[1], visibilities[0]),
 				Check: resource.ComposeTestCheckFunc(
@@ -44,6 +46,7 @@ func TestAccResourceProject(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_project.test", "visibility", visibilities[0]),
 				),
 			},
+			projectImportCheck("sonarcloud_project.test", keys[1]),
 		},
 		CheckDestroy: testAccProjectDestroy,
 	})
@@ -61,4 +64,13 @@ resource "sonarcloud_project" "test" {
 	visibility = "%s"
 }
 `, name, key, visibility)
+}
+
+func projectImportCheck(resourceName, key string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:      resourceName,
+		ImportState:       true,
+		ImportStateId:     key,
+		ImportStateVerify: true,
+	}
 }
