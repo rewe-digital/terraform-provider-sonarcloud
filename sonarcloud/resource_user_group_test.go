@@ -22,6 +22,7 @@ func TestAccUserGroup(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_user_group.test_group", "description", descriptions[0]),
 				),
 			},
+			userGroupImportCheck("sonarcloud_user_group.test_group", names[0]),
 			{
 				Config: testAccUserGroupConfig(names[0], descriptions[1]),
 				Check: resource.ComposeTestCheckFunc(
@@ -29,6 +30,7 @@ func TestAccUserGroup(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_user_group.test_group", "description", descriptions[1]),
 				),
 			},
+			userGroupImportCheck("sonarcloud_user_group.test_group", names[0]),
 			{
 				Config: testAccUserGroupConfig(names[1], descriptions[1]),
 				Check: resource.ComposeTestCheckFunc(
@@ -36,6 +38,7 @@ func TestAccUserGroup(t *testing.T) {
 					resource.TestCheckResourceAttr("sonarcloud_user_group.test_group", "description", descriptions[1]),
 				),
 			},
+			userGroupImportCheck("sonarcloud_user_group.test_group", names[1]),
 		},
 		CheckDestroy: testAccUserGroupDestroy,
 	})
@@ -52,4 +55,13 @@ resource "sonarcloud_user_group" "test_group" {
 	description = "%s"
 }
 `, name, description)
+}
+
+func userGroupImportCheck(resourceName, name string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:      resourceName,
+		ImportState:       true,
+		ImportStateId:     name,
+		ImportStateVerify: true,
+	}
 }
