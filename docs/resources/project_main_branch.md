@@ -36,4 +36,11 @@ resource "sonarcloud_project_main_branch" "main" {
 
 - `id` (String) The ID of this resource.
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+# import a project main branch using <branch name>,<project_key>
+terraform import "sonarcloud_project_main_branch.example_project" "main,example_project"
+```
