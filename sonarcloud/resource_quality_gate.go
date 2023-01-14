@@ -45,7 +45,7 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 			},
 			"is_default": {
 				Type:        types.BoolType,
-				Description: "Defines whether the quality gate is the defualt gate for an organization. **WARNING**: Must be assigned to one quality gate per organization at all times",
+				Description: "Defines whether the quality gate is the default gate for an organization. **WARNING**: Must be assigned to one quality gate per organization at all times.",
 				Optional:    true,
 				Computed:    true,
 				PlanModifiers: tfsdk.AttributePlanModifiers{
@@ -54,7 +54,7 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 			},
 			"conditions": {
 				Optional:    true,
-				Description: "The conditions of this quality gate.",
+				Description: "The conditions of this quality gate. Please query https://sonarcloud.io/api/metrics/search for an up-to-date list of conditions.",
 				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
 					"id": {
 						Type:        types.Float64Type,
@@ -66,18 +66,15 @@ func (r resourceQualityGateType) GetSchema(_ context.Context) (tfsdk.Schema, dia
 					},
 					"metric": {
 						Type:        types.StringType,
-						Description: "The metric on which the condition is based. Must be one of: https://docs.sonarqube.org/latest/user-guide/metric-definitions/",
+						Description: "The metric on which the condition is based.",
 						Required:    true,
-						Validators: []tfsdk.AttributeValidator{
-							allowedOptions("security_rating", "ncloc_language_distribution", "test_execution_time", "statements", "lines_to_cover", "quality_gate_details", "new_reliabillity_remediation_effort", "tests", "security_review_rating", "new_xxx_violations", "conditions_by_line", "new_violations", "ncloc", "duplicated_lines", "test_failures", "test_errors", "reopened_issues", "new_vulnerabilities", "duplicated_lines_density", "test_success_density", "sqale_debt_ratio", "security_hotspots_reviewed", "security_remediation_effort", "covered_conditions_by_line", "classes", "sqale_rating", "xxx_violations", "true_positive_issues", "violations", "new_security_review_rating", "new_security_remediation_effort", "vulnerabillities", "new_uncovered_conditions", "files", "branch_coverage_hits_data", "uncovered_lines", "comment_lines_density", "new_uncovered_lines", "complexty", "cognitive_complexity", "uncovered_conditions", "functions", "new_technical_debt", "new_coverage", "coverage", "new_branch_coverage", "confirmed_issues", "reliabillity_remediation_effort", "projects", "coverage_line_hits_data", "code_smells", "directories", "lines", "bugs", "line_coverage", "new_line_coverage", "reliability_rating", "duplicated_blocks", "branch_coverage", "new_code_smells", "new_sqale_debt_ratio", "open_issues", "sqale_index", "new_lines_to_cover", "comment_lines", "skipped_tests"),
-						},
 						PlanModifiers: tfsdk.AttributePlanModifiers{
 							tfsdk.UseStateForUnknown(),
 						},
 					},
 					"op": {
 						Type:        types.StringType,
-						Description: "Operation on which the metric is evaluated must be either: LT, GT",
+						Description: "Operation on which the metric is evaluated must be either: LT, GT.",
 						Optional:    true,
 						Validators: []tfsdk.AttributeValidator{
 							allowedOptions("LT", "GT"),
