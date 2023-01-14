@@ -43,8 +43,8 @@ resource "sonarcloud_quality_gate" "awesome" {
 
 ### Optional
 
-- `conditions` (Attributes Set) The conditions of this quality gate. (see [below for nested schema](#nestedatt--conditions))
-- `is_default` (Boolean) Defines whether the quality gate is the defualt gate for an organization. **WARNING**: Must be assigned to one quality gate per organization at all times
+- `conditions` (Attributes Set) The conditions of this quality gate. Please query https://sonarcloud.io/api/metrics/search for an up-to-date list of conditions. (see [below for nested schema](#nestedatt--conditions))
+- `is_default` (Boolean) Defines whether the quality gate is the default gate for an organization. **WARNING**: Must be assigned to one quality gate per organization at all times.
 
 ### Read-Only
 
@@ -58,11 +58,11 @@ resource "sonarcloud_quality_gate" "awesome" {
 Required:
 
 - `error` (String) The value on which the condition errors.
-- `metric` (String) The metric on which the condition is based. Must be one of: https://docs.sonarqube.org/latest/user-guide/metric-definitions/
+- `metric` (String) The metric on which the condition is based.
 
 Optional:
 
-- `op` (String) Operation on which the metric is evaluated must be either: LT, GT
+- `op` (String) Operation on which the metric is evaluated must be either: LT, GT.
 
 Read-Only:
 
