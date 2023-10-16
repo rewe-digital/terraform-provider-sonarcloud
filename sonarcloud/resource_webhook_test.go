@@ -2,10 +2,11 @@ package sonarcloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccWebhook(t *testing.T) {
@@ -92,6 +93,7 @@ func webhookImportCheck(resourceName, project string) resource.TestStep {
 			id := state.RootModule().Resources[resourceName].Primary.ID
 			return fmt.Sprintf("%s,%s", id, project), nil
 		},
-		ImportStateVerify: true,
+		// We need to set ImportStateVerify to false because we cannot read the secret value from the API.
+		ImportStateVerify: false,
 	}
 }

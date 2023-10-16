@@ -3,6 +3,7 @@ package sonarcloud
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -43,11 +44,10 @@ func (d dataSourceWebhooksType) GetSchema(_ context.Context) (tfsdk.Schema, diag
 						Computed:    true,
 						Description: "The url of the webhook.",
 					},
-					"secret": {
-						Type:        types.StringType,
+					"has_secret": {
+						Type:        types.BoolType,
 						Computed:    true,
-						Description: "The secret of the webhook. Used as the key to generate the HMAC hex (lowercase) digest value in the 'X-Sonar-Webhook-HMAC-SHA256' header.",
-						Sensitive:   true,
+						Description: "Whether the webhook has a secret.",
 					},
 				}),
 			},
@@ -91,10 +91,10 @@ func (d dataSourceWebhooks) Read(ctx context.Context, req tfsdk.ReadDataSourceRe
 	hooks := make([]DataWebhook, len(response.Webhooks))
 	for i, webhook := range response.Webhooks {
 		hooks[i] = DataWebhook{
-			Key:    types.String{Value: webhook.Key},
-			Name:   types.String{Value: webhook.Name},
-			Secret: types.String{Value: webhook.Secret},
-			Url:    types.String{Value: webhook.Url},
+			Key:       types.String{Value: webhook.Key},
+			Name:      types.String{Value: webhook.Name},
+			HasSecret: types.Bool{Value: webhook.HasSecret},
+			Url:       types.String{Value: webhook.Url},
 		}
 	}
 

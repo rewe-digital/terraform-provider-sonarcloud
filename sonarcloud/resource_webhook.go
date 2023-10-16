@@ -3,12 +3,13 @@ package sonarcloud
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/reinoudk/go-sonarcloud/sonarcloud/webhooks"
-	"strings"
 )
 
 type resourceWebhookType struct{}
@@ -107,8 +108,9 @@ func (r resourceWebhook) Create(ctx context.Context, req tfsdk.CreateResourceReq
 		Key:     types.String{Value: webhook.Key},
 		Project: plan.Project,
 		Name:    types.String{Value: webhook.Name},
-		Secret:  types.String{Value: webhook.Secret},
-		Url:     types.String{Value: webhook.Url},
+		// Just use the secret from the plan, as it's not returned by the API
+		Secret: plan.Secret,
+		Url:    types.String{Value: webhook.Url},
 	}
 	diags = resp.State.Set(ctx, result)
 
@@ -140,7 +142,7 @@ func (r resourceWebhook) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 	}
 
 	// Check if the resource exists the list of retrieved resources
-	if result, ok := findWebhook(response, state.ID.Value, state.Project.Value); ok {
+	if result, ok := findWebhook(response, state.ID.Value, state.Project.Value, state.Secret.Value); ok {
 		diags = resp.State.Set(ctx, result)
 		resp.Diagnostics.Append(diags...)
 	} else {
@@ -200,7 +202,7 @@ func (r resourceWebhook) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 	}
 
 	// Check if the resource exists the list of retrieved resources
-	if result, ok := findWebhook(response, state.Key.Value, state.Project.Value); ok {
+	if result, ok := findWebhook(response, state.Key.Value, state.Project.Value, plan.Secret.Value); ok {
 		diags = resp.State.Set(ctx, result)
 		resp.Diagnostics.Append(diags...)
 	}
@@ -247,7 +249,7 @@ func (r resourceWebhook) ImportState(ctx context.Context, req tfsdk.ImportResour
 }
 
 // findWebhook returns the link with the given id, if it exists in the response
-func findWebhook(response *webhooks.ListResponse, key, project_key string) (Webhook, bool) {
+func findWebhook(response *webhooks.ListResponse, key, project_key, secret string) (Webhook, bool) {
 	var result Webhook
 	ok := false
 
@@ -270,8 +272,9 @@ func findWebhook(response *webhooks.ListResponse, key, project_key string) (Webh
 				Key:     types.String{Value: webhook.Key},
 				Project: types.String{Value: project_key, Null: projectKeyIsNull},
 				Name:    types.String{Value: webhook.Name},
-				Secret:  types.String{Value: webhook.Secret},
-				Url:     types.String{Value: webhook.Url},
+				// We have to use the secret from the plan, as it's not returned by the API
+				Secret: types.String{Value: secret},
+				Url:    types.String{Value: webhook.Url},
 			}
 			ok = true
 			break

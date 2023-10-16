@@ -2,9 +2,10 @@ package sonarcloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func testAccPreCheckDataSourceWebhooks(t *testing.T) {
@@ -29,7 +30,7 @@ func TestAccDataSourceWebhooks(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.sonarcloud_webhooks.test", "webhooks.0.key"),
 					resource.TestCheckResourceAttrSet("data.sonarcloud_webhooks.test", "webhooks.0.name"),
 					resource.TestCheckResourceAttrSet("data.sonarcloud_webhooks.test", "webhooks.0.url"),
-					resource.TestCheckResourceAttrSet("data.sonarcloud_webhooks.test", "webhooks.0.secret"),
+					resource.TestCheckResourceAttrSet("data.sonarcloud_webhooks.test", "webhooks.0.has_secret"),
 				),
 			},
 		},

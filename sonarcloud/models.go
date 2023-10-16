@@ -159,10 +159,10 @@ type DataWebhooks struct {
 }
 
 type DataWebhook struct {
-	Key    types.String `tfsdk:"key"`
-	Name   types.String `tfsdk:"name"`
-	Secret types.String `tfsdk:"secret"`
-	Url    types.String `tfsdk:"url"`
+	Key       types.String `tfsdk:"key"`
+	Name      types.String `tfsdk:"name"`
+	HasSecret types.Bool   `tfsdk:"has_secret"`
+	Url       types.String `tfsdk:"url"`
 }
 
 type Webhook struct {
